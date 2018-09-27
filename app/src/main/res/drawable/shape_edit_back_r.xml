@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="7dp" />
+    <stroke
+        android:width="0.5dp"
+        android:color="@color/ac_login_edt_back_r" />
+    <solid android:color="@color/white" />
+</shape>

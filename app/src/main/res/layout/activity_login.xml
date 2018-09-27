@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activity.LoginActivity">
+
+    <include layout="@layout/hotspring_title"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="35dp"
+            android:layout_marginRight="35dp"
+            android:layout_marginTop="80dp"
+            android:background="@drawable/shape_edit_back_r"
+            android:orientation="horizontal"
+            >
+
+            <LinearLayout
+                android:layout_width="180dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.9"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="20dp"
+                    android:gravity="center"
+                    android:text="用户ID："
+                    android:textSize="@dimen/acceptance_text" />
+            </LinearLayout>
+
+
+            <EditText
+                android:id="@+id/hotspring_login_username"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:gravity="center_vertical"
+                android:hint="请输入用户ID"
+                android:maxLength="20"
+                android:singleLine="true"
+                android:text="admin"
+                android:textColor="@color/black"
+                android:textColorHint="@color/ac_login_edt_hint_color"
+                android:textSize="@dimen/acceptance_hint"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="35dp"
+            android:layout_marginRight="35dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/shape_edit_back_r"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="180dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.9"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="20dp"
+                    android:gravity="center"
+                    android:text=" 密  码："
+                    android:textSize="@dimen/acceptance_text" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/hotspring_login_password"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:text="111"
+                android:gravity="center_vertical"
+                android:hint="请输入密码"
+                android:maxLength="20"
+                android:inputType="textPassword"
+                android:singleLine="true"
+                android:textColor="@color/black"
+                android:textColorHint="@color/ac_login_edt_hint_color"
+                android:textSize="@dimen/acceptance_hint"/>
+        </LinearLayout>
+
+
+        <Button
+            android:id="@+id/hotspring_login_btn"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginLeft="35dp"
+            android:layout_marginRight="35dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/shape_ac_login_btn_back_fill"
+            android:text="登  录"
+            android:textColor="@color/white"
+            android:textSize="@dimen/activity_vertical_margin" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

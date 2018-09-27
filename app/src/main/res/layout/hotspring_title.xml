@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="45dp">
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:background="@color/back"
+        android:gravity="center">
+        <ImageButton
+            android:id="@+id/sell_page_back_btn"
+            android:layout_width="55dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="3dp"
+            android:visibility="gone"
+            android:background="@drawable/a0g"
+            />
+       <!-- <TextView
+            android:id="@+id/sell_page_back_text"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="返回"
+            android:textStyle="bold"
+            android:background="@drawable/af5"/>-->
+        <TextView
+            android:id="@+id/hotspring_title"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:gravity="center"
+            android:text="四季贵州移动服务端"
+            android:textColor="@color/white"
+            android:textSize="@dimen/title_textSize"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/login_set_btn"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="12dp"
+            android:background="@color/ash"
+            android:gravity="center"
+            android:text="设置"
+            android:onClick="setClick"
+            android:textSize="14dp"
+            android:visibility="gone"/>
+    </RelativeLayout>
+</android.support.constraint.ConstraintLayout>

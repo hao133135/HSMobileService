@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/set_title"/>
+    <LinearLayout
+        android:id="@+id/check_set_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="55dp"
+        android:orientation="vertical"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/shape_edit_back_r"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp">
+
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="15dp"
+                android:gravity="center|right"
+                android:text="服务器IP:"
+
+                />
+
+            <EditText
+                android:id="@+id/set_ip"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="left|center"
+                android:background="@null"
+                android:gravity="left|center"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/shape_edit_back_r"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp">
+
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="15dp"
+                android:gravity="center|right"
+                android:text="端口:"
+
+                />
+
+            <EditText
+                android:id="@+id/set_port"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="left|center"
+                android:background="@null"
+                android:gravity="left|center"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/set_store_number_layout"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/shape_edit_back_r"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp">
+
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="15dp"
+                android:gravity="center|right"
+                android:text="分店号:" />
+
+            <EditText
+                android:id="@+id/set_store_number"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="left|center"
+                android:background="@null"
+                android:focusable="false"
+                android:textSize="14dp"
+                android:gravity="left|center"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/set_library_number_layout"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/shape_edit_back_r"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="15dp"
+            android:gravity="center|right"
+            android:text="分库号:" />
+
+        <EditText
+            android:id="@+id/set_library_number"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="left|center"
+            android:background="@null"
+            android:focusable="false"
+            android:textSize="14dp"
+            android:gravity="left|center"/>
+    </LinearLayout>
+        <Button
+            android:id="@+id/set_query_btn"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginLeft="35dp"
+            android:layout_marginRight="35dp"
+            android:layout_marginTop="20dp"
+            android:visibility="gone"
+            android:background="@drawable/shape_ac_login_btn_back_fill"
+            android:text="查  询"
+            android:textSize="@dimen/activity_vertical_margin" />
+        <Button
+            android:id="@+id/set_save_btn"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginLeft="35dp"
+            android:layout_marginRight="35dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/shape_ac_login_btn_back_fill"
+            android:text="保  存"
+            android:textSize="@dimen/activity_vertical_margin" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

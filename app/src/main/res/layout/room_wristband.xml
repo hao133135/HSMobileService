@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+       >
+        <include layout="@layout/hotspring_title"/>
+        <TextView
+            android:id="@+id/room_wristband_wr"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center|left"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:layout_marginLeft="20dp"
+            android:text="腕带号：10010001"
+            android:layout_marginBottom="5dp"/>
+        <ListView
+            android:id="@+id/room_wristband_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"></ListView>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+            >
+            <TextView
+                android:id="@+id/room_wristband_open"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:visibility="gone"
+                android:text="开台"
+                android:drawableTop="@drawable/sell_icon"/>
+            <TextView
+                android:id="@+id/room_wristband_sell"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="购买服务"
+                android:textColor="@color/white"
+                android:paddingTop="5dp"
+                android:background="@color/back"
+                android:drawableTop="@drawable/ict_cart"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:paddingTop="10dp"
+                android:drawableTop="@drawable/ahj"
+                android:text="离台"
+                android:visibility="gone"
+                android:background="@color/back"/>
+        </LinearLayout>
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include layout="@layout/hotspring_title"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="45dp">
+        <TextView
+            android:id="@+id/room_region"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center|left"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:layout_marginLeft="20dp"
+            android:layout_marginBottom="5dp"
+            android:text="台区域："
+            android:visibility="gone"
+            />
+        <LinearLayout
+            android:id="@+id/room_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="visible"
+            android:orientation="vertical">
+            <include layout="@layout/room_list"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/room_icon_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone"
+            android:orientation="vertical">
+
+            <include layout="@layout/room_icon"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="8"
+            android:orientation="horizontal"
+            >
+            <TextView
+                android:id="@+id/room_view_region"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:background="@color/back"
+                android:textColor="@color/white"
+                android:drawableTop="@drawable/vk"
+                android:text="区域"/>
+
+            <TextView
+                android:id="@+id/room_view_query"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="@color/back"
+                android:paddingTop="5dp"
+                android:textColor="@color/white"
+                android:drawableTop="@drawable/vm"
+                android:text="查询条件"/>
+            <TextView
+                android:id="@+id/room_view_switch_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="@color/back"
+                android:textColor="@color/white"
+                android:paddingTop="5dp"
+                android:drawableTop="@drawable/vj"
+                android:text="列表"/>
+        </LinearLayout>
+    </LinearLayout>
+</android.support.constraint.ConstraintLayout>
