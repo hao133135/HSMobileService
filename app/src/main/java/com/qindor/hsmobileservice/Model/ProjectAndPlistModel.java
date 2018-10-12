@@ -6,6 +6,7 @@ import java.util.List;
 public class ProjectAndPlistModel implements Serializable {
     private static final long serialVersionUID = -3766601091520870550L;
     private List<ProjectModel> projectModels;
+    private List<TechnicianModel> technicianModels;
     private List<String> pslist;
 
     public ProjectAndPlistModel() {

@@ -5,16 +5,17 @@
     android:paddingBottom="4dip" android:layout_width="fill_parent"
     android:gravity="center_horizontal">
     <LinearLayout
-        android:layout_width="60dp"
-        android:layout_height="30dp"
+        android:layout_width="100dp"
+        android:layout_height="60dp"
         android:background="@drawable/shape_ac_login_btn_back_fill"
        >
        <TextView
            android:id="@+id/service_btn"
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
+           android:layout_width="100dp"
+           android:layout_height="60dp"
            android:gravity="center"
            android:text="按摩"
+           android:textSize="16dp"
            android:textColor="@color/white"/>
     </LinearLayout>
 </RelativeLayout>

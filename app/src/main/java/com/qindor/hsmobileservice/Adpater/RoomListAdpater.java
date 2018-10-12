@@ -7,13 +7,13 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.qindor.hsmobileservice.Model.RoomModel;
+import com.qindor.hsmobileservice.Model.RoomAdpaterModel;
 import com.qindor.hsmobileservice.R;
 
 import java.util.List;
 
 public class RoomListAdpater<T> extends BaseAdapter {
-    private List<RoomModel> roomModels;
+    private List<RoomAdpaterModel> roomModels;
     private int resource;   //item的布局
     private Context context;
     private LayoutInflater inflator;
@@ -24,7 +24,7 @@ public class RoomListAdpater<T> extends BaseAdapter {
      * @param roomModels   显示的数据
      * @param resource  一个Item的布局
      */
-    public RoomListAdpater(Context context, List<RoomModel> roomModels, int resource){
+    public RoomListAdpater(Context context, List<RoomAdpaterModel> roomModels, int resource){
         this.context = context;
         this.roomModels = roomModels;
         this.resource = resource;
@@ -71,14 +71,18 @@ public class RoomListAdpater<T> extends BaseAdapter {
         }else{
             viewHolder = (ViewHolder)convertView.getTag();
         }
-        RoomModel roomModel  = roomModels.get(position);
+        RoomAdpaterModel roomModel  = roomModels.get(position);
         viewHolder.sWDBH.setText(roomModel.getsWDBH());
         viewHolder.sXMMC.setText(roomModel.getsXMMC());
-        viewHolder.sJSXM.setText(roomModel.getsJSXM());
+        //viewHolder.sJSXM.setText(roomModel.getsJSXM());
         int i = roomModel.getsDateYMDHMSSZ().indexOf(" ");
-        int i1 = roomModel.getsDateYMDHMSXZ().indexOf(" ");
-        viewHolder.sDateYMDHMSSZ.setText(roomModel.getsDateYMDHMSSZ().substring(i,roomModel.getsDateYMDHMSSZ().length()));
-        viewHolder.sDateYMDHMSXZ.setText(roomModel.getsDateYMDHMSXZ().substring(i1,roomModel.getsDateYMDHMSXZ().length()));
+        //int i1 = roomModel.getsDateYMDHMSXZ().indexOf(" ");
+        if(!roomModel.getsDateYMDHMSSZ().equals("")) {
+            viewHolder.sDateYMDHMSSZ.setText(roomModel.getsDateYMDHMSSZ().substring(i, roomModel.getsDateYMDHMSSZ().length()));
+        }
+      /*  if(!roomModel.getsDateYMDHMSXZ().equals("")) {
+            viewHolder.sDateYMDHMSXZ.setText(roomModel.getsDateYMDHMSXZ().substring(i1, roomModel.getsDateYMDHMSXZ().length()));
+        }*/
         return convertView;
     }
 

@@ -7,14 +7,14 @@
         android:layout_height="45dp"
         android:background="@color/back"
         android:gravity="center">
-        <ImageButton
+     <!--   <ImageButton
             android:id="@+id/sell_page_back_btn"
             android:layout_width="55dp"
             android:layout_height="40dp"
             android:layout_marginTop="3dp"
             android:visibility="gone"
             android:background="@drawable/a0g"
-            />
+            />-->
        <!-- <TextView
             android:id="@+id/sell_page_back_text"
             android:layout_width="60dp"
@@ -33,16 +33,15 @@
             android:textSize="@dimen/title_textSize"
             android:textStyle="bold" />
 
-        <Button
+        <ImageButton
             android:id="@+id/login_set_btn"
-            android:layout_width="50dp"
+            android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:layout_marginEnd="12dp"
-            android:background="@color/ash"
             android:gravity="center"
-            android:text="设置"
+            android:background="@drawable/aliwx_expression_config"
             android:onClick="setClick"
             android:textSize="14dp"
             android:visibility="gone"/>

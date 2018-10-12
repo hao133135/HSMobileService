@@ -1,5 +1,6 @@
 package com.qindor.hsmobileservice.Activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -17,13 +18,14 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.qindor.hsmobileservice.Adpater.WristbandAdpater;
+import com.qindor.hsmobileservice.Adpater.WristbandDialogAdpater;
 import com.qindor.hsmobileservice.Model.BaseModel;
 import com.qindor.hsmobileservice.Model.InformationModel;
 import com.qindor.hsmobileservice.Model.ProjectAndPlistModel;
@@ -51,6 +53,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class WristbandActivity extends AppCompatActivity implements View.OnClickListener {
     private Handler handler;
     private HttpUtils httpUtils;
@@ -60,6 +68,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     private String resultData,re,code;
     private RoomsModel roomModel;
     private WristbandAdpater wristbandAdpater;
+    private WristbandDialogAdpater wristbandDialogAdpater;
     private ListView listView;
     private LayoutInflater inflater;
     private ProjectAndPlistModel projectAndPlistModel;
@@ -69,15 +78,15 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     private ArrayAdapter<String> adapter;
     private List<String> sslist = new ArrayList<>(),tslist=new ArrayList<>();
     private String msg,sout,userid,sKey;
-    private TextView open,sell,t1,p1,t2,p2,wristband,title;
+    private TextView open,sell,t1,p1,t2,p2,wristband,title,dtitle;
     private List<TechnicianModel> technicianModels;
     private List<RoomModel> roomModels;
     private boolean isDate=false;
-    private ImageButton backBtn;
     private InformationModel informationModel;
     private LoadingDialog dialog1;
-    private LoadingDialog.Builder builder1;
-
+    private ListView dlistView;
+    private SimpleAdapter saImageItems = null;
+    private RoomModel sXMMC;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,18 +96,15 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void init() {
-        builder1=new LoadingDialog.Builder(WristbandActivity.this)
+        dialog1=new LoadingDialog.Builder(WristbandActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false);
-        dialog1=builder1.create();
+                .setCancelable(false).create();
         listView = findViewById(R.id.room_wristband_list_view);
         open = findViewById(R.id.room_wristband_open);
         sell = findViewById(R.id.room_wristband_sell);
         wristband = findViewById(R.id.room_wristband_wr);
-        backBtn = findViewById(R.id.sell_page_back_btn);
         title = findViewById(R.id.hotspring_title);
-        backBtn.setVisibility(View.VISIBLE);
-        backBtn.setOnClickListener(this);
+        sXMMC = new RoomModel();
         SharedPreferences sharedPreferences=getSharedPreferences("config",0);
         baseModel = new BaseModel(sharedPreferences.getString("ip",""),sharedPreferences.getString("store",""),sharedPreferences.getString("library",""),sharedPreferences.getString("mac",""),sharedPreferences.getString("port",""));
         isDate = sharedPreferences.getBoolean("isDate",false);
@@ -113,9 +119,16 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
             msg=e.toString();
             handler.post(toast);
         }
-        Bundle bundle =this.getIntent().getExtras();
-        roomModel = (RoomsModel) bundle.get("rooms");
-        title.setText("腕带号："+roomModel.getModels().get(0).getsWDBH());
+        String temp = sharedPreferences.getString("rooms", "");
+        ByteArrayInputStream bais =  new ByteArrayInputStream(Base64.decode(temp.getBytes(), Base64.DEFAULT));
+        try {
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            roomModel = (RoomsModel) ois.readObject();
+            title.setText("腕带号："+roomModel.getModels().get(0).getsWDBH());
+        } catch (Exception e) {
+            msg=e.toString();
+            handler.post(toast);
+        }
         //wristband.setText("腕带号："+roomModel.getModels().get(0).getsWDBH());
         roomModels = new ArrayList<>();
         httpUtils = new HttpUtils();
@@ -137,14 +150,20 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                 dialog1.dismiss();
             }
         },1000);*/
+        SharedPreferences sp=getSharedPreferences("config",0);
+        SharedPreferences.Editor editor=sp.edit();
+        editor.putString("pro", "");
+        editor.putString("type", "");
+        editor.putString("tec", "");
+        editor.commit();
         handler.post(setData);
         if(isDate){
             getPData();
         }else {
-            String temp = sharedPreferences.getString("projectAndPlistModel", "");
-            ByteArrayInputStream bais =  new ByteArrayInputStream(Base64.decode(temp.getBytes(), Base64.DEFAULT));
+            String temp2 = sharedPreferences.getString("projectAndPlistModel", "");
+            ByteArrayInputStream bais2 =  new ByteArrayInputStream(Base64.decode(temp2.getBytes(), Base64.DEFAULT));
             try {
-                ObjectInputStream ois = new ObjectInputStream(bais);
+                ObjectInputStream ois = new ObjectInputStream(bais2);
                 projectAndPlistModel = (ProjectAndPlistModel) ois.readObject();
             } catch (Exception e) {
                 msg=e.toString();
@@ -152,7 +171,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
             }
         }
 
-        getTData();
+        //getTData();
         setServiceData();
 
     }
@@ -167,14 +186,8 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
             case R.id.room_wristband_sell:
                 //showServiceDialog();
                 Intent i = new Intent(WristbandActivity.this, SellServiceActivity.class);
-                Bundle bundle1 = new Bundle();
-                bundle1.putSerializable("rooms",roomModel);
-                i.putExtras(bundle1);
                 startActivity(i);
                 finish();
-                break;
-            case R.id.sell_page_back_btn:
-                back();
                 break;
         }
     }
@@ -192,19 +205,31 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         }
         map.put("msg",data);
         resultData = null;
-        dialog1.show();
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        resultData = "{\"code\":\"getjsl \",\"ret\":\"0\",\"msg\":[{\"sGH\":\"A001\",\"sXM\":\"张三\",\"sBM\":\"桑拿部\",\"sGZ\":\"桑拿技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"},{\"sGH\":\"B001\",\"sXM\":\"李四\",\"sBM\":\"足浴部\",\"sGZ\":\"足浴技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"}]}";
-        dialog1.dismiss();
-        returnedTData(resultData);
        /* new Thread(new Runnable() {
             @Override
             public void run() {
-                //resultData = httpUtils.baseHttp(WristbandActivity.this,baseModel,"spring",map);
-                resultData = "{\"code\":\"getjsl \",\"ret\":\"0\",\"msg\":[{\"sGH\":\"A001\",\"sXM\":\"张三\",\"sBM\":\"桑拿部\",\"sGZ\":\"桑拿技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"},{\"sGH\":\"B001\",\"sXM\":\"李四\",\"sBM\":\"足浴部\",\"sGZ\":\"足浴技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"}]}";
+                resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
                 returnedTData(resultData);
             }
         }).start();*/
+        OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+        Request request = new Request.Builder()//创建Request 对象。
+                .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                .build();
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                msg=e.toString();
+                handler.post(toast);
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                resultData = response.body().string();
+                returnedTData(resultData);
+            }
+        });
+        //resultData = "{\"code\":\"getjsl \",\"ret\":\"0\",\"msg\":[{\"sGH\":\"A001\",\"sXM\":\"张三\",\"sBM\":\"桑拿部\",\"sGZ\":\"桑拿技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"},{\"sGH\":\"B001\",\"sXM\":\"李四\",\"sBM\":\"足浴部\",\"sGZ\":\"足浴技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"}]}";
     }
     private void getPData() {
         //{"code":"getjxm","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148"}}
@@ -219,19 +244,31 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         }
         map.put("msg",data);
         resultData = null;
-        dialog1.show();
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        resultData = "{\"code\":\"getjxm\",\"ret\":\"0\",\"msg\":[{\"sXMLX\":\"按摩类\",\"sXMMC\":\"推背\",\"iSZZC\":\"30\",\"fSZDJ\":\"80\",\"iJZZC\":\"15\",\"fJZDJ\":\"30\"},{\"sXMLX\":\"按摩类\",\"sXMMC\":\"按摩\",\"iSZZC\":\"30\",\"fSZDJ\":\"100\",\"iJZZC\":\"15\",\"fJZDJ\":\"50\"},{\"sXMLX\":\"洗浴类\",\"sXMMC\":\"足疗\",\"iSZZC\":\"30\",\"fSZDJ\":\"50\",\"iJZZC\":\"15\",\"fJZDJ\":\"20\"}]}";
-        dialog1.dismiss();
-        returnedPData(resultData);
        /* new Thread(new Runnable() {
             @Override
             public void run() {
-                //resultData = httpUtils.baseHttp(WristbandActivity.this,baseModel,"spring",map);
-                resultData = "{\"code\":\"getjxm\",\"ret\":\"0\",\"msg\":[{\"sXMLX\":\"按摩类\",\"sXMMC\":\"推背\",\"iSZZC\":\"30\",\"fSZDJ\":\"80\",\"iJZZC\":\"15\",\"fJZDJ\":\"30\"},{\"sXMLX\":\"按摩类\",\"sXMMC\":\"按摩\",\"iSZZC\":\"30\",\"fSZDJ\":\"100\",\"iJZZC\":\"15\",\"fJZDJ\":\"50\"},{\"sXMLX\":\"洗浴类\",\"sXMMC\":\"足疗\",\"iSZZC\":\"30\",\"fSZDJ\":\"50\",\"iJZZC\":\"15\",\"fJZDJ\":\"20\"}]}";
+                resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
+                //resultData = "{\"code\":\"getjxm\",\"ret\":\"0\",\"msg\":[{\"sXMLX\":\"按摩类\",\"sXMMC\":\"推背\",\"iSZZC\":\"30\",\"fSZDJ\":\"80\",\"iJZZC\":\"15\",\"fJZDJ\":\"30\"},{\"sXMLX\":\"按摩类\",\"sXMMC\":\"按摩\",\"iSZZC\":\"30\",\"fSZDJ\":\"100\",\"iJZZC\":\"15\",\"fJZDJ\":\"50\"},{\"sXMLX\":\"洗浴类\",\"sXMMC\":\"足疗\",\"iSZZC\":\"30\",\"fSZDJ\":\"50\",\"iJZZC\":\"15\",\"fJZDJ\":\"20\"}]}";
                 returnedPData(resultData);
             }
         }).start();*/
+        OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+        Request request = new Request.Builder()//创建Request 对象。
+                .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                .build();
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                msg=e.toString();
+                handler.post(toast);
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                resultData = response.body().string();
+                returnedPData(resultData);
+            }
+        });
     }
     private void getData() {
         //{"code":"gettxx","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sTBH":"301"}}
@@ -247,19 +284,32 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         }
         map.put("msg",data);
         resultData = null;
-        dialog1.show();
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        resultData = "{\"code\":\"gettxx\",\"ret\":\"0\",\"msg\":[{\"sDWID\":\"1808119588186356874011A7E91679CEA4020A\",\"sWDBH\":\"WQT0182\",\"sXMMC\":\"推背\",\"fXMDJ\":\"20.00\",\"fSL\":\"1.00\",\"fXMJE\":\"20.00\",\"sJSGH\":\"A002\",\"sJSXM\":\"张三\",\"sZLX\":\"首钟\",\"sDateYMDHMSSZ\":\"2018-08-11 15:41:41\",\"sDateYMDHMSXZ\":\"2018-08-11 16:41:41\",\"iZSC\":\"60\",\"iSY\":\"60\"},{\"sDWID\":\"1808119588186356874011A7E91679CEA4020A\",\"sWDBH\":\"WQT0182\",\"sXMMC\":\"推背\",\"fXMDJ\":\"25.00\",\"fSL\":\"1.00\",\"fXMJE\":\"25.00\",\"sJSGH\":\"A002\",\"sJSXM\":\"李四\",\"sZLX\":\"首钟\",\"sDateYMDHMSSZ\":\"2018-08-11 15:42:42\",\"sDateYMDHMSXZ\":\"2018-08-11 16:42:42\",\"iZSC\":\"60\",\"iSY\":\"60\"}]}";
-        dialog1.dismiss();
-        returnedData(resultData);
        /* new Thread(new Runnable() {
             @Override
             public void run() {
-                resultData = httpUtils.baseHttp(WristbandActivity.this,baseModel,"spring",map);
+                resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
                 //resultData = "{\"code\":\"gettxx\",\"ret\":\"0\",\"msg\":[{\"sDWID\":\"1808119588186356874011A7E91679CEA4020A\",\"sWDBH\":\"WQT0182\",\"sXMMC\":\"推背\",\"fXMDJ\":\"20.00\",\"fSL\":\"1.00\",\"fXMJE\":\"20.00\",\"sJSGH\":\"A002\",\"sJSXM\":\"张三\",\"sZLX\":\"首钟\",\"sDateYMDHMSSZ\":\"2018-08-11 15:41:41\",\"sDateYMDHMSXZ\":\"2018-08-11 16:41:41\",\"iZSC\":\"60\",\"iSY\":\"60\"},{\"sDWID\":\"1808119588186356874011A7E91679CEA4020A\",\"sWDBH\":\"WQT0182\",\"sXMMC\":\"推背\",\"fXMDJ\":\"25.00\",\"fSL\":\"1.00\",\"fXMJE\":\"25.00\",\"sJSGH\":\"A002\",\"sJSXM\":\"李四\",\"sZLX\":\"首钟\",\"sDateYMDHMSSZ\":\"2018-08-11 15:42:42\",\"sDateYMDHMSXZ\":\"2018-08-11 16:42:42\",\"iZSC\":\"60\",\"iSY\":\"60\"}]}";
                 returnedData(resultData);
             }
         }).start();*/
+        OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+        Request request = new Request.Builder()//创建Request 对象。
+                .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                .build();
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                msg=e.toString();
+                handler.post(toast);
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                resultData = response.body().string();
+                returnedData(resultData);
+            }
+        });
+
     }
     private void returnedTData(String resultData) {
         try {
@@ -400,12 +450,27 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
            }
            map.put("msg",data);
            resultData = null;
-           dialog1.show();
            //resultData = httpUtils.baseHttp(WristbandActivity.this,baseModel,"spring",map);
            //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-           resultData = "{\"code\":\"dodxm\",\"ret\":\"0\",\"msg\":\"点服务成功\"}";
-           dialog1.dismiss();
-           returnedSData(resultData);
+           OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+           Request request = new Request.Builder()//创建Request 对象。
+                   .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                   .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                   .build();
+           mOkHttpClient.newCall(request).enqueue(new Callback() {
+               @Override
+               public void onFailure(Call call, IOException e) {
+                   msg=e.toString();
+                   handler.post(toast);
+               }
+               @Override
+               public void onResponse(Call call, Response response) throws IOException {
+                   resultData = response.body().string();
+                   returnedSData(resultData);
+               }
+           });
+           //resultData = "{\"code\":\"dodxm\",\"ret\":\"0\",\"msg\":\"点服务成功\"}";
+           //returnedSData(resultData);
        }
    };
 
@@ -481,6 +546,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     };
 
     private void setServiceData() {
+        sslist.clear();
         sslist.add("上钟");
         sslist.add("加钟");
         sslist.add("减钟");
@@ -497,8 +563,10 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                 roomModels.clear();
                 for (int i=0;i<jsonArray.length();i++) {
                     JSONObject jsonObject1 = (JSONObject) jsonArray.get(i);
-                    RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"),jsonObject1.getString("sWDBH"),jsonObject1.getString("sXMMC"),jsonObject1.getString("fXMDJ"),jsonObject1.getString("fSL"),jsonObject1.getString("fXMJE"),jsonObject1.getString("sJSGH"),jsonObject1.getString("sJSXM"),jsonObject1.getString("sZLX"),jsonObject1.getString("sDateYMDHMSSZ"),jsonObject1.getString("sDateYMDHMSXZ"),jsonObject1.getString("iZSC"),jsonObject1.getString("iSY"));
-                    roomModels.add(roomModel);
+                    if(jsonObject1.getString("sWDBH").equals(roomModel.getModels().get(0).getsWDBH())) {
+                        RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"), jsonObject1.getString("sWDBH"), jsonObject1.getString("sXMMC"), jsonObject1.getString("fXMDJ"), jsonObject1.getString("fSL"), jsonObject1.getString("fXMJE"), jsonObject1.getString("sJSGH"), jsonObject1.getString("sJSXM"), jsonObject1.getString("sZLX"), jsonObject1.getString("sDateYMDHMSSZ"), jsonObject1.getString("sDateYMDHMSXZ"), jsonObject1.getString("iZSC"), jsonObject1.getString("iSY"));
+                        roomModels.add(roomModel);
+                    }
                 }
                 handler.post(setSData);
             }
@@ -524,7 +592,11 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showSetDeBugDialog(roomModels.get(position).getsXMMC());
+                if (roomModels.get(position).getsZLX().equals("首钟")||roomModels.get(position).getsZLX().equals("加钟"))
+                {
+                    showSetDeBugDialog(roomModels.get(position).getsXMMC());
+                    sXMMC = roomModels.get(position);
+                }
             }
         });
     }
@@ -532,23 +604,18 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         AlertDialog.Builder setDeBugDialog = new AlertDialog.Builder(this);
         inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.wristband_dialog, null);
-        serviceSpinner = dialogView.findViewById(R.id.room_wristband_service);
-        regionBtn = dialogView.findViewById(R.id.wristband_dialog_btn);
+        //serviceSpinner = dialogView.findViewById(R.id.room_wristband_service);
         outBtn = dialogView.findViewById(R.id.wristband_dialog_out_btn);
-        new SpinnerTask().execute();
+        dlistView = dialogView.findViewById(R.id.wristband_dialog_list);
+        dtitle = dialogView.findViewById(R.id.wristband_dialog_title);
+        dtitle.setText(sXMMC);
+        selectService=null;
         setDeBugDialog = new AlertDialog.Builder(this);
         setDeBugDialog.setView(dialogView);
         alertDialog = setDeBugDialog.create();
         alertDialog.show();
+        handler.post(setDListData);
         alertDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-        regionBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                re = serviceSpinner.getSelectedItem().toString();
-                myHandler.sendEmptyMessageDelayed(0, 1000);
-                alertDialog.dismiss();
-            }
-        });
         outBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -557,25 +624,80 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         });
 
     }
-    class SpinnerTask extends AsyncTask<Object, Void, List<String>>
-    {
+
+    private String selectService;
+    Runnable setDListData = new Runnable() {
         @Override
-        protected List<String> doInBackground(Object... params) {
-            return sslist;
+        public void run() {
+            setServiceData();
+            wristbandDialogAdpater = new WristbandDialogAdpater(WristbandActivity.this,sslist,R.layout.service_select_icon);
+            dlistView.setAdapter(wristbandDialogAdpater);
+            dlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    re = sslist.get(position);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(WristbandActivity.this);
+                    builder.setMessage("确定选择"+re+"服务吗?");
+                    builder.setTitle("提示");
+                    builder.setIcon(android.R.drawable.ic_dialog_alert);
+                    builder.setPositiveButton("确认",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    myHandler.sendEmptyMessageDelayed(0, 1000);
+                                }
+                            });
+
+                    builder.setNegativeButton("取消",
+                            new android.content.DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                    builder.create().show();
+                }
+            });
+          /*    int length = sslist.size();
+            //生成动态数组，并且转入数据
+            ArrayList<HashMap<String, Object>> lstImageItem = new ArrayList<HashMap<String, Object>>();
+            for (int i = 0; i < length; i++) {
+                HashMap<String, Object> map = new HashMap<String, Object>();
+                map.put("service", sslist.get(i));
+                lstImageItem.add(map);
+            }
+            lstImageItem = getSingle(lstImageItem);
+            //生成适配器的ImageItem 与动态数组的元素相对应
+            saImageItems = new SimpleAdapter(WristbandActivity.this,
+                    lstImageItem,//数据来源
+                    R.layout.service_icon_items,//item的XML实现
+                    //动态数组与ImageItem对应的子项
+                    new String[]{"service"},
+                    //ImageItem的XML文件里面的一个ImageView,两个TextView ID
+                    new int[]{R.id.service_btn});
+            //添加并且显示
+            gridView.setAdapter(saImageItems);
+            final ArrayList<HashMap<String, Object>> finalLstImageItem = lstImageItem;
+            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    selectService = finalLstImageItem.get(position).get("service").toString();
+                    for (int i=0;i< parent.getCount();i++)
+                    {
+                        View v=parent.getChildAt(i);
+                        if (position == i) {
+                            TextView mChoosedTv = (TextView) v.findViewById(R.id.service_btn);
+                            mChoosedTv.setBackgroundResource(R.drawable.shape_edit_back_green);
+                        } else {
+                            TextView mNormalTv = (TextView) v.findViewById(R.id.service_btn);
+                            mNormalTv.setBackgroundResource(R.drawable.shape_ac_login_btn_back_fill);
+                        }
+                    }
+                }
+            });*/
         }
-        @Override
-        protected void onPostExecute(List<String> result) {
-            // TODO Auto-generated method stub
-            spinnerClick();
-        }
-    }
-    private void spinnerClick() {
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, sslist);
-        //第三步：为适配器设置下拉列表下拉时的菜单样式。
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //第四步：将适配器添加到下拉列表上
-        serviceSpinner.setAdapter(adapter);
-    }
+    };
+
     //这里处理传过来的数据
     private Handler myHandler = new Handler(){
         @Override
@@ -602,11 +724,6 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
             }
         }
     };
-
-
-
-
-
     private void getServiceData(String service) {
         //{"code":"doklt","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sWD":"WQT0182","sTH":"301"}}}
         map.clear();
@@ -615,25 +732,37 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         try {
             data.put("sMAC",baseModel.getMac());
             data.put("sIP",baseModel.getIp());
-            data.put("sDWID",roomModel.getModels().get(0).getsDWID());
+            data.put("sDWID",sXMMC.getsDWID());
         } catch (JSONException e) {
             e.printStackTrace();
         }
         map.put("msg",data);
         resultData = null;
-        dialog1.show();
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        resultData = "{\"code\":\"dojaz\",\"ret\":\"0\",\"msg\":\"加钟成功\"}";
-        dialog1.dismiss();
-        returnedSData(resultData);
        /* new Thread(new Runnable() {
             @Override
             public void run() {
-                //resultData = httpUtils.baseHttp(WristbandActivity.this,baseModel,"spring",map);
-                resultData = "{\"code\":\"doklt\",\"ret\":\"0\",\"msg\":\"加钟成功\"}";
+                resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
+                //resultData = "{\"code\":\"dojaz\",\"ret\":\"0\",\"msg\":\"加钟成功\"}";
                 returnedSData(resultData);
             }
         }).start();*/
+        OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+        Request request = new Request.Builder()//创建Request 对象。
+                .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                .build();
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                msg=e.toString();
+                handler.post(toast);
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                resultData = response.body().string();
+                returnedSData(resultData);
+            }
+        });
     }
     private void returnedSData(String resultData) {
         try {
@@ -641,7 +770,17 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
             String ret = jsonObject.getString("ret");
             if (ret.equals("0"))
             {
+                alertDialog.dismiss();
                 getData();
+                msg = jsonObject.getString("msg");
+                handler.post(toast);
+                if (msg.equals("退单成功"))
+                {
+                    startActivity(configuration.getIntent(WristbandActivity.this,InformationActivity.class));
+                    finish();
+                }
+            }else {
+                alertDialog.dismiss();
                 msg = jsonObject.getString("msg");
                 handler.post(toast);
             }

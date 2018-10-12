@@ -13,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,7 +21,6 @@ import com.qindor.hsmobileservice.Model.BaseModel;
 import com.qindor.hsmobileservice.R;
 import com.qindor.hsmobileservice.Utils.Commontools;
 import com.qindor.hsmobileservice.Utils.Configuration;
-import com.qindor.hsmobileservice.Utils.GetIpUtils;
 import com.qindor.hsmobileservice.Utils.HttpUtils;
 import com.qindor.hsmobileservice.Utils.LoadingDialog;
 import com.qindor.hsmobileservice.Utils.MD5Utils;
@@ -28,20 +28,28 @@ import com.qindor.hsmobileservice.Utils.MD5Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class LoginActivity extends Commontools implements View.OnClickListener {
-    private Button loginBtn,setBtn;
+    private Button loginBtn;
+    private ImageButton setBtn;
     private TextView loginUser,loginPwd;
-    private String msg,user,pwd,resultData,sKey,sSign;
+    private String msg,user,pwd,resultData,sKey,sSign,st;
     private Handler handler;
     private HttpUtils httpUtils;
     private BaseModel baseModel;
     private Configuration configuration;
     private Map<String, Object>  map;
     private LoadingDialog dialog1;
-    private LoadingDialog.Builder builder1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,10 +59,9 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
     }
 
     private void init() {
-        builder1=new LoadingDialog.Builder(LoginActivity.this)
+        dialog1=new LoadingDialog.Builder(LoginActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false);
-        dialog1=builder1.create();
+                .setCancelable(false).create();
         loginBtn = findViewById(R.id.hotspring_login_btn);
         setBtn = findViewById(R.id.login_set_btn);
         setBtn.setVisibility(View.VISIBLE);
@@ -106,8 +113,7 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
             msg="请输入用户名和密码";
             handler.post(toast);
         } else  {
-            dialog1.show();
-             /*try {
+             try {
                 OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
                 FormBody.Builder formBody = new FormBody.Builder();//创建表单请求体
                 formBody.add( "userid",user);
@@ -135,12 +141,13 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
             {
                 msg = e.toString();
                 handler.post(toast);
-            }*/
+            }
             //{"rlt":"true","msg":"管理员"}
             //{"rlt":"false","msg":"用户ID或密码错误"}
-            dialog1.show();
-             resultData = "{\"rlt\":\"true\",\"msg\":\"管理员\"}";
-            returnedValue(resultData);
+
+
+            // resultData = "{\"rlt\":\"true\",\"msg\":\"管理员\"}";
+            //returnedValue(resultData);
 
         }
 
@@ -153,27 +160,24 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
             String ret = jsonObject.getString("rlt");
             if (ret.equals("true"))
             {
-
-                query();
-                dialog1.dismiss();
                 SharedPreferences sp=getSharedPreferences("config",0);
                 SharedPreferences.Editor editor=sp.edit();
                 //把数据进行保存
                 StringBuffer output = new StringBuffer();
                 editor.putString("userid",user);
-                String st = MD5Utils.MD5(jsonObject.getString("msg")+pwd);
+                st = MD5Utils.MD5(jsonObject.getString("user")+pwd);
                 editor.putString("sKey",st);
                 editor.putString("store",baseModel.getStoreNum());
                 editor.putString("library",baseModel.getLibraryNum());
                 //提交数据
                 editor.commit();
+                query();
                 handler.post(setbtns);
                 startActivity(configuration.getIntent(LoginActivity.this,RoomActivity.class));
                 finish();
             }
             else
             {
-                dialog1.dismiss();
                 msg = jsonObject.getString("msg");
                 handler.post(toast);
             }
@@ -188,16 +192,30 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
         JSONObject data = new JSONObject();
         try {
             data.put("sMAC",baseModel.getMac());
-            data.put("sIP", GetIpUtils.getIP(LoginActivity.this));
+            data.put("sIP",baseModel.getIp());
         } catch (JSONException e) {
             e.printStackTrace();
         }
         map.put("msg",data);
         resultData = null;
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        //resultData = httpUtils.baseHttp(SetActivity.this,baseModel,"spring",map);
-        resultData = "{\"code\":\"getfdh\",\"ret\":\"0\",\"msg\":{\"sFDH\":\"018 门票-景区餐饮\",\"sFKH\":\"0004 宴会厅\"}}";
-        returnValue(resultData);
+        OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+        Request request = new Request.Builder()//创建Request 对象。
+                .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                .post(httpUtils.baseOkHttp(baseModel,user,st,map).build())//传递请求体
+                .build();
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                msg=e.toString();
+                handler.post(toast);
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                resultData = response.body().string();
+                returnValue(resultData);
+            }
+        });
+
     }
     private void returnValue(String resultData) {
         //{"code":"getfdh","ret":"0","msg":{"sFDH":"018 门票-景区餐饮","sFKH":"0004 宴会厅"}}

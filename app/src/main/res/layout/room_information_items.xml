@@ -8,37 +8,49 @@
         android:orientation="horizontal"
         android:background="@color/white"
         >
-        <TextView
-            android:id="@+id/information_list_sWDBH"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:background="@null"
-            android:text="10020001"/>
-        <TextView
-            android:id="@+id/information_list_sXMMC"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:background="@null"
-            android:text="全身按摩"/>
-        <TextView
-            android:id="@+id/information_list_sJSXM"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:background="@null"
-            android:text="四李"/>
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/information_list_sWDBH"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.8"
+                android:background="@null"
+                android:gravity="center"
+                android:text="10020001" />
+            <TextView
+                android:id="@+id/information_list_sXMMC"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="@null"
+                android:text="全身按摩"/>
+            <TextView
+                android:id="@+id/information_list_sJSXM"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:visibility="gone"
+                android:background="@null"
+                android:text="四李"/>
+            <TextView
+                android:id="@+id/information_list_sDateYMDHMSSZ"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="9:53"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:visibility="gone"
             android:orientation="vertical">
            <TextView
-               android:id="@+id/information_list_sDateYMDHMSSZ"
+               android:id="@+id/information_list_sDateYMDHMSSZ1"
                android:layout_width="match_parent"
                android:layout_height="match_parent"
                android:layout_weight="1"
@@ -51,6 +63,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="11:53"/>
+        </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

@@ -1,6 +1,7 @@
 package com.qindor.hsmobileservice.Adpater;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,6 +66,7 @@ public class InformactionAdpater<T> extends BaseAdapter {
             viewHolder.service = convertView.findViewById(R.id.room_list_service);
             viewHolder.sate = convertView.findViewById(R.id.room_list_sate);
             viewHolder.count = convertView.findViewById(R.id.room_list_count);
+            viewHolder.layout = convertView.findViewById(R.id.room_list_layout);
             //为了减少开销，则只在第一页时调用findViewById
             convertView.setTag(viewHolder);
         }else{
@@ -75,6 +77,21 @@ public class InformactionAdpater<T> extends BaseAdapter {
         viewHolder.service.setText(informationModel.getsTMC());
         viewHolder.sate.setText(informationModel.getsTZT());
         viewHolder.count.setText(informationModel.getsRTS()+"/"+informationModel.getsNTS());
+        if (!informationModel.getsRTS().equals("0"))
+        {
+            viewHolder.layout.setBackgroundResource(R.color.ash1);
+            viewHolder.information.setTextColor(Color.WHITE);
+            viewHolder.service.setTextColor(Color.WHITE);
+            viewHolder.sate.setTextColor(Color.WHITE);
+            viewHolder.count.setTextColor(Color.WHITE);
+        }else
+        {
+            viewHolder.layout.setBackgroundResource(R.color.white);
+            viewHolder.information.setTextColor(Color.BLACK);
+            viewHolder.service.setTextColor(Color.BLACK);
+            viewHolder.sate.setTextColor(Color.BLACK);
+            viewHolder.count.setTextColor(Color.BLACK);
+        }
         return convertView;
     }
     public void setSelectedItem(int selectedItem)
@@ -83,6 +100,7 @@ public class InformactionAdpater<T> extends BaseAdapter {
     }
     class ViewHolder{
         private TextView information,service,sate,count;
+        private View layout;
     }
     /**
      * 局部刷新

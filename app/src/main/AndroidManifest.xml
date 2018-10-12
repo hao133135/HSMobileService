@@ -25,6 +25,10 @@
         </activity>
         <activity android:name=".Activity.RoomActivity"
             android:alwaysRetainTaskState="true">
+
+          </activity>
+        <activity android:name=".Activity.InformationActivity"
+            android:alwaysRetainTaskState="true">
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
                 <data android:mimeType="text/plain" />
@@ -39,9 +43,6 @@
                 <action android:name="android.nfc.action.TAG_DISCOVERED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-          </activity>
-        <activity android:name=".Activity.InformationActivity"
-            android:alwaysRetainTaskState="true">
         </activity>
         <activity android:name=".Activity.WristbandActivity"
             android:alwaysRetainTaskState="true">
@@ -50,6 +51,15 @@
             android:alwaysRetainTaskState="true">
         </activity>
         <activity android:name=".Activity.SellServiceActivity"
+            android:alwaysRetainTaskState="true">
+        </activity>
+        <activity android:name=".Activity.ServiceTypeActivity"
+            android:alwaysRetainTaskState="true">
+        </activity>
+        <activity android:name=".Activity.ServiceProjectActivity"
+            android:alwaysRetainTaskState="true">
+        </activity>
+        <activity android:name=".Activity.ServiceTechnicianActivity"
             android:alwaysRetainTaskState="true">
         </activity>
     </application>

@@ -5,59 +5,57 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="350dp"
         android:orientation="vertical">
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="60dp"
             android:gravity="center"
             android:textColor="@color/white"
-            android:text="查 询"
+            android:text="查询台号"
             android:background="@color/ac_login_edt_back_r"
             android:textSize="18dp"/>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="30dp"
+            android:layout_height="200dp"
             android:gravity="center"
-            android:orientation="horizontal"
+            android:layout_marginBottom="10dp"
+            android:orientation="vertical"
             android:layout_weight="1">
-            <TextView
-                android:layout_width="60dp"
-                android:layout_height="match_parent"
-                android:gravity="center|right"
-                android:text="查询台号"/>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginLeft="5dp"
+            <!--<TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
                 android:gravity="center"
-                android:background="@drawable/shape_edit_back_r1">
-                <Spinner
-                    android:id="@+id/query_dialog_spinner"
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:gravity="center"
-                    android:layout_gravity="center"></Spinner>
-            </LinearLayout>
+                android:text="服    务"/>-->
+            <!-- <include layout="@layout/service_select_icon"/>-->
+            <!-- <LinearLayout
+                 android:layout_width="wrap_con tent"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="center"
+                 android:layout_marginLeft="5dp"
+                 android:gravity="center"
+                 android:background="@drawable/shape_edit_back_r1">
+                 <Spinner
+                     android:id="@+id/room_wristband_service"
+                     android:layout_width="100dp"
+                     android:layout_height="wrap_content"
+                     android:layout_marginLeft="10dp"
+                     android:gravity="center"
+                     android:layout_gravity="center"></Spinner>
+             </LinearLayout>-->
+            <ListView
+                android:id="@+id/query_dialog_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"></ListView>
         </LinearLayout>
-
         <LinearLayout
             android:layout_width="160dp"
             android:layout_height="30dp"
             android:layout_weight="1"
+            android:layout_marginBottom="10dp"
             android:layout_gravity="center">
-            <Button
-                android:id="@+id/query_dialog_btn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="5dp"
-                android:layout_weight="1"
-                android:textColor="@color/white"
-                android:background="@drawable/shape_ac_login_btn_back_fill"
-                android:text="确定" />
+
             <Button
                 android:id="@+id/query_dialog_out_btn"
                 android:layout_width="match_parent"

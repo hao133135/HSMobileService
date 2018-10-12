@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,14 +23,15 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.qindor.hsmobileservice.Adpater.InformactionAdpater;
+import com.qindor.hsmobileservice.Adpater.MySimpleAdapter;
+import com.qindor.hsmobileservice.Adpater.RoomDialogAdpater;
+import com.qindor.hsmobileservice.Adpater.RoomQueryAdpater;
 import com.qindor.hsmobileservice.Model.BaseModel;
 import com.qindor.hsmobileservice.Model.InformationModel;
 import com.qindor.hsmobileservice.Model.RegionModel;
@@ -55,11 +55,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class RoomActivity extends AppCompatActivity implements View.OnClickListener {
     private List<RoomModel> roomModels = new ArrayList<>();
     private RegionModel regionModel;
     private View v1,v2;
-    private ImageButton backBtn;
     private TextView regionDialogBtn,queryBtn,swicthBtn,region,title;
     private GridView gridview;
     private ListView listView;
@@ -80,7 +85,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     private LayoutInflater inflater;
     private AlertDialog alertDialog;
     private String re,code,th,msg,regionName;
-    private SimpleAdapter saImageItems = null;
+    private MySimpleAdapter saImageItems = null;
     private InformactionAdpater informactionAdpater = null;
     private int REQUEST_CODE = 0x01;
     private InformationModel imodel;
@@ -88,7 +93,9 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     private int day=0;
     private String re1;
     private LoadingDialog dialog1;
-    private LoadingDialog.Builder builder1;
+    private RoomDialogAdpater roomDialogAdpater;
+    private RoomQueryAdpater roomQueryAdpater;
+    private ListView dlistView,qlistView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -98,13 +105,11 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void init() {
-        builder1=new LoadingDialog.Builder(RoomActivity.this)
+        dialog1=new LoadingDialog.Builder(RoomActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false);
-        dialog1=builder1.create();
+                .setCancelable(false).create();
         gridview = (GridView) findViewById(R.id.GridView);
         listView = findViewById(R.id.room_list_views);
-        backBtn = findViewById(R.id.sell_page_back_btn);
         regionDialogBtn = findViewById(R.id.room_view_region);
         queryBtn = findViewById(R.id.room_view_query);
         swicthBtn = findViewById(R.id.room_view_switch_btn);
@@ -113,17 +118,11 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         title.setText("台区域");
         v1 = findViewById(R.id.room_icon_view);
         v2 = findViewById(R.id.room_list_view);
-        backBtn.setVisibility(View.VISIBLE);
         regionModel = new RegionModel();
         SharedPreferences sharedPreferences=getSharedPreferences("config",0);
         userid = sharedPreferences.getString("userid","");
         sKey = sharedPreferences.getString("sKey","");
         regionName = sharedPreferences.getString("regionName","");
-        if(regionName!="")
-        {
-            re = regionName;
-            myHandler.sendEmptyMessageDelayed(0, 1000);
-        }
         baseModel = new BaseModel(sharedPreferences.getString("ip",""),sharedPreferences.getString("store",""),sharedPreferences.getString("library",""),sharedPreferences.getString("mac",""),sharedPreferences.getString("port",""));
         httpUtils = new HttpUtils();
         imodel = new InformationModel();
@@ -133,7 +132,6 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         informationModels = new ArrayList<>();
         sbool = false;
         swicthView();
-        backBtn.setOnClickListener(this);
         regionDialogBtn.setOnClickListener(this);
         queryBtn.setOnClickListener(this);
         swicthBtn.setOnClickListener(this);
@@ -161,19 +159,23 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         }
         map.put("msg",data);
         resultData = null;
-        dialog1.show();
-        resultData = "{\"code\":\"gettls\",\"ret\":\"0\",\"msg\":[{\"sTBH\":\"101\",\"sTMC\":\"足浴房\",\"sTZT\":\"占用\",sRTS:\"1\",sNTS:\"4\"},{\"sTBH\":\"102\",\"sTMC\":\"桑拿房\",\"sTZT\":\"空闲\",sRTS:\"0\",sNTS:\"4\"}]}";
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        dialog1.dismiss();
-        returnedValue(resultData);
-     /*   new Thread(new Runnable() {
+        OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+        Request request = new Request.Builder()//创建Request 对象。
+                .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                .build();
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
             @Override
-            public void run() {
-                //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-                resultData = "{\"code\":\"gettls\",\"ret\":\"0\",\"msg\":[{\"sTBH\":\"101\",\"sTMC\":\"足浴房\",\"sTZT\":\"占用\",sRTS:\"1\",sNTS:\"4\"},{\"sTBH\":\"102\",\"sTMC\":\"桑拿房\",\"sTZT\":\"空闲\",sRTS:\"0\",sNTS:\"4\"}]}";
+            public void onFailure(Call call, IOException e) {
+                msg=e.toString();
+                handler.post(toast);
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                resultData = response.body().string();
                 returnedValue(resultData);
             }
-        }).start();*/
+        });
     }
 
     private void returnedValue(String resultData) {
@@ -210,35 +212,6 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    class SpinnerTask extends AsyncTask<Object, Void, List<String>>
-    {
-        @Override
-        protected List<String> doInBackground(Object... params) {
-            return sslist;
-        }
-        @Override
-        protected void onPostExecute(List<String> result) {
-            // TODO Auto-generated method stub
-            spinnerClick();
-        }
-    }
-    class QSpinnerTask extends AsyncTask<Object, Void, List<String>>
-    {
-        @Override
-        protected List<String> doInBackground(Object... params) {
-            if(slist.size()==0) {
-                for (InformationModel i : informationModels) {
-                    slist.add(i.getsTBH());
-                }
-            }
-            return slist;
-        }
-        @Override
-        protected void onPostExecute(List<String> result) {
-            // TODO Auto-generated method stub
-            qspinnerClick();
-        }
-    }
     private void getRegionData() {
         //{"code":"gettqy","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148"}}
         map.clear();
@@ -252,11 +225,24 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         }
         map.put("msg",data);
         resultData = null;
-        dialog1.show();
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        resultData = "{\"code\":\"gettqy\",\"ret\":\"0\",\"msg\":[{\"sQYH\":\"001001\",\"sQYM\":\"按摩区\"},{\"sQYH\":\"001002\",\"sQYM\":\"足疗区\"}]}";
-        dialog1.dismiss();
-        returnedData(resultData);
+        OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+        Request request = new Request.Builder()//创建Request 对象。
+                .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                .build();
+        mOkHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                msg=e.toString();
+                handler.post(toast);
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                resultData = response.body().string();
+                returnedData(resultData);
+            }
+        });
+        //resultData = "{\"code\":\"gettqy\",\"ret\":\"0\",\"msg\":[{\"sQYH\":\"001001\",\"sQYM\":\"按摩区\"},{\"sQYH\":\"001002\",\"sQYM\":\"足疗区\"}]}";
     }
 
     private void returnedData(String resultData) {
@@ -274,6 +260,11 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                     rmap.put(jsonObject1.getString("sQYH"),jsonObject1.getString("sQYM"));
                     sslist.add(jsonObject1.getString("sQYM"));
                 }
+                if(regionName!=""&&rmap!=null)
+                {
+                    re = regionName;
+                    myHandler.sendEmptyMessageDelayed(0, 1000);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -287,13 +278,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         //第四步：将适配器添加到下拉列表上
         regionSpinner.setAdapter(adapter);
     }
-    private void qspinnerClick() {
-        adapter1 = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, slist);
-        //第三步：为适配器设置下拉列表下拉时的菜单样式。
-        adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //第四步：将适配器添加到下拉列表上
-        qSpinner.setAdapter(adapter1);
-    }
+
     public void loadView(final List<InformationModel> informationModelss){
         int length = informationModelss.size();
         //生成动态数组，并且转入数据
@@ -307,15 +292,16 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             lstImageItem.add(map);
         }
 
-        //生成适配器的ImageItem 与动态数组的元素相对应
-        saImageItems = new SimpleAdapter(this,
+       /*//生成适配器的ImageItem 与动态数组的元素相对应
+        saImageItems = new MySimpleAdapter(this,
                 lstImageItem,//数据来源
                 R.layout.room_icon_items,//item的XML实现
                 //动态数组与ImageItem对应的子项
                 new String[]{"sTBH", "sXMMC","fSL","state"},
                 //ImageItem的XML文件里面的一个ImageView,两个TextView ID
                 new int[]{R.id.room_icon_sTBH, R.id.room_icon_sXMMC,R.id.room_icon_fSL,R.id.room_icon_state});
-        //添加并且显示
+        //添加并且显示*/
+       saImageItems = new MySimpleAdapter(this,informationModelss,R.layout.room_icon_items);
         gridview.setAdapter(saImageItems);
         //添加消息处理
 
@@ -416,22 +402,63 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             }
             map.put("msg",data);
             resultData = null;
-            dialog1.show();
-            //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
+            OkHttpClient mOkHttpClient = new OkHttpClient();//创建OkHttpClient对象。
+            Request request = new Request.Builder()//创建Request 对象。
+                    .url(  "http://"+baseModel.getIp()+":"+baseModel.getPort()+"/handheld_device/spring")
+                    .post(httpUtils.baseOkHttp(baseModel,userid,sKey,map).build())//传递请求体
+                    .build();
+            mOkHttpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    msg=e.toString();
+                    handler.post(toast);
+                }
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    resultData="";
+                    resultData = response.body().string();
+                    //returnedData(resultData);
+                    try {
+                        JSONObject jsonObject = new JSONObject(resultData);
+                        if (jsonObject.getString("ret").equals("0"))
+                        {
+                            handler.post(toInfo);
+                        }
+                        msg = jsonObject.getString("msg");
+                        handler.post(toast);
+                    } catch (JSONException e) {
+                        msg = e.toString();
+                        handler.post(toast);
+                    }
+                }
+            });
+           /* new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
+                    try {
+                        JSONObject jsonObject = new JSONObject(resultData);
+                        msg = jsonObject.getString("msg");
+                        handler.post(toast);
+                        handler.post(toInfo);
+                    } catch (JSONException e) {
+                        msg = e.toString();
+                        handler.post(toast);
+                    }
+                }
+            }).start();*/
+
             //resultData = httpUtils.baseHttp(InformationActivity.this,baseModel,"spring",map);
-            resultData = "{\"code\":\"dotkt \",\"ret\":\"0\",\"msg\":\"开台成功\"}";
-            dialog1.dismiss();
-            try {
-                JSONObject jsonObject = new JSONObject(resultData);
-                msg = jsonObject.getString("msg");
-                handler.post(toast);
-                saveData(imodel);
-                startActivity(configuration.getIntent(RoomActivity.this,InformationActivity.class));
-                finish();
-            } catch (JSONException e) {
-                msg = e.toString();
-                handler.post(toast);
-            }
+            //resultData = "{\"code\":\"dotkt \",\"ret\":\"0\",\"msg\":\"开台成功\"}";
+
+        }
+    };
+    Runnable toInfo = new Runnable() {
+        @Override
+        public void run() {
+            saveData(imodel);
+            startActivity(configuration.getIntent(RoomActivity.this,InformationActivity.class));
+            finish();
         }
     };
     Runnable toast = new Runnable() {
@@ -475,23 +502,14 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog.Builder setDeBugDialog = new AlertDialog.Builder(this);
         inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.information_dialog, null);
-        regionSpinner = dialogView.findViewById(R.id.information_dialog_spinner);
-        regionBtn = dialogView.findViewById(R.id.information_dialog_btn);
         outBtn = dialogView.findViewById(R.id.information_dialog_out_btn);
-        new SpinnerTask().execute();
+        dlistView = dialogView.findViewById(R.id.room_dialog_list);
         setDeBugDialog = new AlertDialog.Builder(this);
         setDeBugDialog.setView(dialogView);
         alertDialog = setDeBugDialog.create();
         alertDialog.show();
+        handler.post(setListData);
         alertDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-        regionBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                re = regionSpinner.getSelectedItem().toString();
-                myHandler.sendEmptyMessageDelayed(0, 1000);
-                alertDialog.dismiss();
-            }
-        });
         outBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -500,36 +518,62 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+    Runnable setListData = new Runnable() {
+        @Override
+        public void run() {
+            roomDialogAdpater = new RoomDialogAdpater(RoomActivity.this,sslist,R.layout.service_room_icon);
+            dlistView.setAdapter(roomDialogAdpater);
+            dlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    re = sslist.get(position);
+                    alertDialog.dismiss();
+                    myHandler.sendEmptyMessageDelayed(0, 1000);
+                }
+            });
+        }
+    };
     private void showSetQueryDialog() {
         AlertDialog.Builder setDeBugDialog = new AlertDialog.Builder(this);
         inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.room_query_dialog, null);
-        qSpinner = dialogView.findViewById(R.id.query_dialog_spinner);
-        qbtn = dialogView.findViewById(R.id.query_dialog_btn);
         qoutbtn = dialogView.findViewById(R.id.query_dialog_out_btn);
-        new QSpinnerTask().execute();
+        //new QSpinnerTask().execute();
+        qlistView =  dialogView.findViewById(R.id.query_dialog_list);
         setDeBugDialog = new AlertDialog.Builder(this);
         setDeBugDialog.setView(dialogView);
         alertDialog = setDeBugDialog.create();
         alertDialog.show();
+        handler.post(setQueryListData);
         alertDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-        qbtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                re1 = qSpinner.getSelectedItem().toString();
-                myQHandler.sendEmptyMessageDelayed(0, 1000);
-                alertDialog.dismiss();
-            }
-        });
         qoutbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                getRegionData();
                 alertDialog.dismiss();
             }
         });
 
     }
-
+    Runnable setQueryListData = new Runnable() {
+        @Override
+        public void run() {
+            slist.clear();
+            for (InformationModel i : informationModels) {
+                slist.add(i.getsTBH());
+            }
+            roomQueryAdpater = new RoomQueryAdpater(RoomActivity.this,slist,R.layout.service_query_icon);
+            qlistView.setAdapter(roomQueryAdpater);
+            qlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    re1 = slist.get(position);
+                    alertDialog.dismiss();
+                    myQHandler.sendEmptyMessageDelayed(0, 1000);
+                }
+            });
+        }
+    };
     //这里处理传过来的数据
     private Handler myHandler = new Handler(){
         @Override
@@ -605,9 +649,6 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId())
         {
-            case R.id.sell_page_back_btn:
-                back();
-                break;
             case R.id.room_view_region:
                 showSetDeBugDialog();
                 break;

@@ -10,6 +10,7 @@
             android:id="@+id/set_page_back_btn"
             android:layout_width="45dp"
             android:layout_height="45dp"
+            android:visibility="gone"
             android:background="@drawable/back_normal"
             />
         <TextView

@@ -27,6 +27,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:visibility="visible"
+            android:layout_marginBottom="10dp"
             android:orientation="vertical">
             <include layout="@layout/room_list"/>
         </LinearLayout>
@@ -68,7 +69,7 @@
                 android:paddingTop="5dp"
                 android:textColor="@color/white"
                 android:drawableTop="@drawable/vm"
-                android:text="查询条件"/>
+                android:text="查询台号"/>
             <TextView
                 android:id="@+id/room_view_switch_btn"
                 android:layout_width="match_parent"

@@ -67,6 +67,7 @@ public class WristbandAdpater<T>  extends BaseAdapter {
             viewHolder.fSL = convertView.findViewById(R.id.room_wristband_fSL);
             viewHolder.sJSXM = convertView.findViewById(R.id.room_wristband_sJSXM);
             viewHolder.fXMJE = convertView.findViewById(R.id.room_wristband_fXMJE);
+            viewHolder.sDateYMDHMSXZ = convertView.findViewById(R.id.room_wristband_sDateYMDHMSXZ);
             viewHolder.sDateYMDHMSSZ = convertView.findViewById(R.id.room_wristband_sDateYMDHMSSZ);
             //为了减少开销，则只在第一页时调用findViewById
             convertView.setTag(viewHolder);
@@ -74,14 +75,32 @@ public class WristbandAdpater<T>  extends BaseAdapter {
             viewHolder = (WristbandAdpater.ViewHolder)convertView.getTag();
         }
         RoomModel roomModel  = roomModels.get(position);
-        viewHolder.sXMMC.setText(roomModel.getsXMMC());
-        viewHolder.fXMDJ.setText(roomModel.getfXMDJ());
-        viewHolder.sZLX.setText(roomModel.getsZLX());
-        viewHolder.fSL.setText(roomModel.getfSL());
-        viewHolder.sJSXM.setText(roomModel.getsJSXM());
-        viewHolder.fXMJE.setText(roomModel.getfXMJE());
+        if (roomModel.getsZLX().equals("首钟")||roomModel.getsZLX().equals("加钟")) {
+            viewHolder.sXMMC.setText("项目名称：" + roomModel.getsXMMC());
+        }else {
+            viewHolder.sXMMC.setText("商品名称：" + roomModel.getsXMMC());
+        }
+        viewHolder.fXMDJ.setText("单价："+roomModel.getfXMDJ());
+        viewHolder.sZLX.setText("类型："+roomModel.getsZLX());
+        viewHolder.fSL.setText("X"+roomModel.getfSL());
+        if (!roomModel.getsJSXM().equals("")) {
+            viewHolder.sJSXM.setText("技师：" + roomModel.getsJSXM());
+        }else {
+            viewHolder.sJSXM.setText("无");
+        }
+        viewHolder.fXMJE.setText("金额："+roomModel.getfXMJE());
         int i = roomModel.getsDateYMDHMSSZ().indexOf(" ");
-        viewHolder.sDateYMDHMSSZ.setText(roomModel.getsDateYMDHMSSZ().substring(i,roomModel.getsDateYMDHMSSZ().length()));
+        if(!roomModel.getsDateYMDHMSSZ().equals("")) {
+            viewHolder.sDateYMDHMSSZ.setText("首钟："+roomModel.getsDateYMDHMSSZ().substring(i, roomModel.getsDateYMDHMSSZ().length()));
+        }else
+        {
+            viewHolder.sDateYMDHMSSZ.setText("无");
+        }
+        if(!roomModel.getsDateYMDHMSXZ().equals("")) {
+            viewHolder.sDateYMDHMSXZ.setText("下钟："+roomModel.getsDateYMDHMSXZ().substring(i, roomModel.getsDateYMDHMSXZ().length()));
+        }else {
+            viewHolder.sDateYMDHMSXZ.setText("无");
+        }
         return convertView;
     }
     public void setSelectedItem(int selectedItem)
@@ -89,7 +108,7 @@ public class WristbandAdpater<T>  extends BaseAdapter {
         this.selectedItem = selectedItem;
     }
     class ViewHolder{
-        private TextView sXMMC,fXMDJ,sZLX,fSL,sJSXM,fXMJE,sDateYMDHMSSZ;
+        private TextView sXMMC,fXMDJ,sZLX,fSL,sJSXM,fXMJE,sDateYMDHMSSZ,sDateYMDHMSXZ;
     }
     /**
      * 局部刷新

@@ -5,11 +5,11 @@
     android:paddingBottom="4dip" android:layout_width="fill_parent"
     android:gravity="center_horizontal">
     <LinearLayout
+        android:id="@+id/shoukuan"
         android:layout_width="100dp"
         android:layout_height="60dp"
         android:background="@drawable/shape_edit_back_green">
-    <LinearLayout
-        android:id="@+id/shoukuan"
+        <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"

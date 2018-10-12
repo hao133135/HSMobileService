@@ -70,7 +70,7 @@ public class RoomModel implements Serializable {
     }
 
     public String getfXMDJ() {
-        return fXMDJ;
+        return String.valueOf(Double.parseDouble(fXMDJ));
     }
 
     public void setfXMDJ(String fXMDJ) {
@@ -86,7 +86,7 @@ public class RoomModel implements Serializable {
     }
 
     public String getfXMJE() {
-        return fXMJE;
+        return String.valueOf(Double.parseDouble(fXMJE));
     }
 
     public void setfXMJE(String fXMJE) {
