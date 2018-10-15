@@ -23,6 +23,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -73,6 +74,8 @@ public class CaptureActivity extends AppCompatActivity implements Callback {
     //	private Button cancelScanButton;
     public static final int RESULT_CODE_QR_SCAN = 0xA1;
     public static final String INTENT_EXTRA_KEY_QR_SCAN = "qr_scan_result";
+    private ImageButton btnFlash;
+    private boolean isFlashOn = false;
     /**
      * Called when the activity is first created.
      */
@@ -84,6 +87,8 @@ public class CaptureActivity extends AppCompatActivity implements Callback {
         CameraManager.init(getApplication());
         viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_content);
         back = (ImageView) findViewById(R.id.scanner_toolbar_back);
+        btnFlash = findViewById(R.id.btn_flash);
+        btnFlash.setOnClickListener(flashListener);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -97,7 +102,32 @@ public class CaptureActivity extends AppCompatActivity implements Callback {
         //添加toolbar
 //        addToolbar();
     }
-
+    /**
+     *  闪光灯开关按钮
+     */
+    private View.OnClickListener flashListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            try {
+                boolean isSuccess = CameraManager.get().setFlashLight(!isFlashOn);
+                if(!isSuccess){
+                    Toast.makeText(CaptureActivity.this, "暂时无法开启闪光灯", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (isFlashOn) {
+                    // 关闭闪光灯
+                    btnFlash.setImageResource(R.drawable.flash_off);
+                    isFlashOn = false;
+                } else {
+                    // 开启闪光灯
+                    btnFlash.setImageResource(R.drawable.flash_on);
+                    isFlashOn = true;
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    };
     private void addToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        ImageView more = (ImageView) findViewById(R.id.scanner_toolbar_more);

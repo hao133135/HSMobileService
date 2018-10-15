@@ -61,7 +61,7 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
     private void init() {
         dialog1=new LoadingDialog.Builder(LoginActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false).create();
+                .setCancelable(true).create();
         loginBtn = findViewById(R.id.hotspring_login_btn);
         setBtn = findViewById(R.id.login_set_btn);
         setBtn.setVisibility(View.VISIBLE);
@@ -162,16 +162,11 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
             {
                 SharedPreferences sp=getSharedPreferences("config",0);
                 SharedPreferences.Editor editor=sp.edit();
-                //把数据进行保存
-                StringBuffer output = new StringBuffer();
                 editor.putString("userid",user);
                 st = MD5Utils.MD5(jsonObject.getString("user")+pwd);
                 editor.putString("sKey",st);
-                editor.putString("store",baseModel.getStoreNum());
-                editor.putString("library",baseModel.getLibraryNum());
                 //提交数据
                 editor.commit();
-                query();
                 handler.post(setbtns);
                 startActivity(configuration.getIntent(LoginActivity.this,RoomActivity.class));
                 finish();
@@ -225,8 +220,11 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
             if (ret.equals("0"))
             {
                 JSONObject jsonObject1 = jsonObject.getJSONObject("msg");
-                baseModel.setLibraryNum(jsonObject1.getString("sFKH"));
-                baseModel.setStoreNum(jsonObject1.getString("sFDH"));
+                SharedPreferences sp=getSharedPreferences("config",0);
+                SharedPreferences.Editor editor=sp.edit();
+                editor.putString("store",jsonObject1.getString("sFDH"));
+                editor.putString("library",jsonObject1.getString("sFKH"));
+                editor.commit();
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -235,6 +233,7 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
     Runnable setbtns = new Runnable() {
         @Override
         public void run() {
+            query();
             setBtn.setVisibility(View.GONE);
         }
     };

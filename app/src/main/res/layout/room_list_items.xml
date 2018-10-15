@@ -3,9 +3,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
-        android:id="@+id/room_list_layout"
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:background="@color/back3">
+    <LinearLayout
+        android:id="@+id/room_list_layout"
+        android:layout_width="match_parent"
+        android:layout_height="49dp"
+        android:paddingBottom="1dp"
         android:orientation="horizontal"
         android:background="@color/white"
         >
@@ -41,5 +46,6 @@
             android:gravity="center"
             android:background="@null"
             android:text="00/20"/>
+    </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

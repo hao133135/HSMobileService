@@ -1,7 +1,6 @@
 package com.qindor.hsmobileservice.Adpater;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,18 +78,10 @@ public class InformactionAdpater<T> extends BaseAdapter {
         viewHolder.count.setText(informationModel.getsRTS()+"/"+informationModel.getsNTS());
         if (!informationModel.getsRTS().equals("0"))
         {
-            viewHolder.layout.setBackgroundResource(R.color.ash1);
-            viewHolder.information.setTextColor(Color.WHITE);
-            viewHolder.service.setTextColor(Color.WHITE);
-            viewHolder.sate.setTextColor(Color.WHITE);
-            viewHolder.count.setTextColor(Color.WHITE);
+            viewHolder.layout.setBackgroundResource(R.color.back2);
         }else
         {
             viewHolder.layout.setBackgroundResource(R.color.white);
-            viewHolder.information.setTextColor(Color.BLACK);
-            viewHolder.service.setTextColor(Color.BLACK);
-            viewHolder.sate.setTextColor(Color.BLACK);
-            viewHolder.count.setTextColor(Color.BLACK);
         }
         return convertView;
     }

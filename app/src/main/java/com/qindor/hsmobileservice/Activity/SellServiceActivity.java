@@ -75,7 +75,7 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
     private void init() {
         dialog1=new LoadingDialog.Builder(SellServiceActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false).create();
+                .setCancelable(true).create();
         httpUtils = new HttpUtils();
         b1 = findViewById(R.id.room_wristband_service_btn);
         b2 = findViewById(R.id.room_wristband_service_out_btn);
@@ -528,7 +528,7 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
             data.put("sMAC",baseModel.getMac());
             data.put("sIP",baseModel.getIp());
             data.put("sWD",roomModel.getModels().get(0).getsWDBH());
-             data.put("sXM",t5.getText().toString());
+             data.put("sXM",t5.getText().toString().substring(5,t5.getText().toString().length()));
             if(!"技师选择/自动分配".equals(t6.getText().toString())){
                 if(tecNum!=null)
                 {

@@ -89,7 +89,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     private InformactionAdpater informactionAdpater = null;
     private int REQUEST_CODE = 0x01;
     private InformationModel imodel;
-    private boolean isDate = false;
+    private boolean isDate = false,isdialog = false;
     private int day=0;
     private String re1;
     private LoadingDialog dialog1;
@@ -107,7 +107,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     private void init() {
         dialog1=new LoadingDialog.Builder(RoomActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false).create();
+                .setCancelable(true).create();
         gridview = (GridView) findViewById(R.id.GridView);
         listView = findViewById(R.id.room_list_views);
         regionDialogBtn = findViewById(R.id.room_view_region);
@@ -135,13 +135,15 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         regionDialogBtn.setOnClickListener(this);
         queryBtn.setOnClickListener(this);
         swicthBtn.setOnClickListener(this);
-        getRegionData();
+         dialog1.show();
+         getRegionData();
         Time t=new Time();
         t.setToNow();
         day = t.monthDay;
         if(day-sharedPreferences.getInt("day",0)!=0){
             isDate=true;
         }
+
 
     }
 
@@ -167,6 +169,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         mOkHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                dialog1.dismiss();
                 msg=e.toString();
                 handler.post(toast);
             }
@@ -202,7 +205,9 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                 handler.post(setData);
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            dialog1.dismiss();
+            msg = e.toString();
+            handler.post(toast);
         }
     }
     Runnable setData = new Runnable() {
@@ -233,6 +238,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         mOkHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                dialog1.dismiss();
                 msg=e.toString();
                 handler.post(toast);
             }
@@ -264,22 +270,19 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                 {
                     re = regionName;
                     myHandler.sendEmptyMessageDelayed(0, 1000);
+                }else {
+                    dialog1.dismiss();
                 }
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            dialog1.dismiss();
+            msg = e.toString();
+            handler.post(toast);
         }
     }
 
-    private void spinnerClick() {
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, sslist);
-        //第三步：为适配器设置下拉列表下拉时的菜单样式。
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //第四步：将适配器添加到下拉列表上
-        regionSpinner.setAdapter(adapter);
-    }
-
     public void loadView(final List<InformationModel> informationModelss){
+        dialog1.dismiss();
         int length = informationModelss.size();
         //生成动态数组，并且转入数据
         ArrayList<HashMap<String, Object>> lstImageItem = new ArrayList<HashMap<String, Object>>();
@@ -549,6 +552,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         qoutbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                dialog1.show();
                 getRegionData();
                 alertDialog.dismiss();
             }

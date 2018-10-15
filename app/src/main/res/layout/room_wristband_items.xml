@@ -5,98 +5,107 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:orientation="vertical"
-        android:background="@color/white"
-        >
+        android:background="@color/back3">
         <LinearLayout
+            android:id="@+id/room_wristband_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1.5"
-            android:orientation="horizontal">
-            <TextView
-                android:id="@+id/room_wristband_sXMMC"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center|left"
-                android:layout_weight="1"
-                android:background="@null"
-                android:text="全身按摩"/>
-            <TextView
-                android:id="@+id/room_wristband_fSL"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center|right"
-                android:layout_marginRight="30dp"
-                android:text="x1"/>
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
+            android:layout_height="99dp"
+            android:orientation="vertical"
+            android:background="@color/white"
+            android:paddingBottom="1dp"
+            >
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:layout_marginLeft="10dp"
-                android:orientation="vertical">
+                android:layout_weight="1.5"
+                android:orientation="horizontal">
                 <TextView
-                    android:id="@+id/room_wristband_fXMDJ"
-                    android:layout_width="match_parent"
+                    android:id="@+id/room_wristband_sXMMC"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:gravity="center|left"
-                    android:text="单价"/>
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:text="全身按摩"/>
                 <TextView
-                    android:id="@+id/room_wristband_fXMJE"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:id="@+id/room_wristband_fSL"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:gravity="center|left"
-                    android:text="金额"/>
+                    android:gravity="center|right"
+                    android:layout_marginRight="30dp"
+                    android:text="x1"/>
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/room_wristband_sZLX"
+                android:layout_weight="1">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:gravity="center|left"
-                    android:text="类型"/>
-                <TextView
-                    android:id="@+id/room_wristband_sJSXM"
+                    android:layout_marginLeft="10dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/room_wristband_fXMDJ"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center|left"
+                        android:text="单价"/>
+                    <TextView
+                        android:id="@+id/room_wristband_fXMJE"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center|left"
+                        android:text="金额"/>
+                </LinearLayout>
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:gravity="center|left"
-                    android:text="技师"/>
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/room_wristband_sZLX"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center|left"
+                        android:text="类型"/>
+                    <TextView
+                        android:id="@+id/room_wristband_sJSXM"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center|left"
+                        android:text="技师"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/room_wristband_sDateYMDHMSSZ"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center|left"
+                        android:text="上钟时间"/>
+                    <TextView
+                        android:id="@+id/room_wristband_sDateYMDHMSXZ"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center|left"
+                        android:text="下钟时间"/>
+                </LinearLayout>
             </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/room_wristband_sDateYMDHMSSZ"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center|left"
-                    android:text="上钟时间"/>
-                <TextView
-                    android:id="@+id/room_wristband_sDateYMDHMSXZ"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center|left"
-                    android:text="下钟时间"/>
-            </LinearLayout>
+
         </LinearLayout>
+
 
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

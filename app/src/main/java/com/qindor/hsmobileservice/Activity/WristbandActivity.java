@@ -98,7 +98,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     private void init() {
         dialog1=new LoadingDialog.Builder(WristbandActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false).create();
+                .setCancelable(true).create();
         listView = findViewById(R.id.room_wristband_list_view);
         open = findViewById(R.id.room_wristband_open);
         sell = findViewById(R.id.room_wristband_sell);
@@ -564,7 +564,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                 for (int i=0;i<jsonArray.length();i++) {
                     JSONObject jsonObject1 = (JSONObject) jsonArray.get(i);
                     if(jsonObject1.getString("sWDBH").equals(roomModel.getModels().get(0).getsWDBH())) {
-                        RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"), jsonObject1.getString("sWDBH"), jsonObject1.getString("sXMMC"), jsonObject1.getString("fXMDJ"), jsonObject1.getString("fSL"), jsonObject1.getString("fXMJE"), jsonObject1.getString("sJSGH"), jsonObject1.getString("sJSXM"), jsonObject1.getString("sZLX"), jsonObject1.getString("sDateYMDHMSSZ"), jsonObject1.getString("sDateYMDHMSXZ"), jsonObject1.getString("iZSC"), jsonObject1.getString("iSY"));
+                        RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"), jsonObject1.getString("sWDBH"), jsonObject1.getString("sXMMC"), jsonObject1.getString("fXMDJ"), jsonObject1.getString("fSL"), jsonObject1.getString("fXMJE"), jsonObject1.getString("sJSGH"), jsonObject1.getString("sJSXM"), jsonObject1.getString("sZLX"), jsonObject1.getString("sDateYMDHMSSZ"), jsonObject1.getString("sDateYMDHMSXZ"), jsonObject1.getString("iZSC"), jsonObject1.getString("iSY"),jsonObject1.getString("sZT"));
                         roomModels.add(roomModel);
                     }
                 }
@@ -654,8 +654,28 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                                     dialog.dismiss();
                                 }
                             });
+                    if (re.equals("上钟"))
+                    {
+                        if(sXMMC.getsZT().equals(re)){
+                            msg = "该项目已上钟";
+                            handler.post(toast);
+                        }else
+                        {
+                            builder.create().show();
+                        }
+                    }else if(re.equals("加钟")||re.equals("减钟")||re.equals("下钟"))
+                    {
+                        if(sXMMC.getsZT().equals("备钟")){
+                            msg = "该项目未上钟";
+                            handler.post(toast);
+                        }else
+                        {
+                            builder.create().show();
+                        }
+                    }else if(re.equals("退单")){builder.create().show();}
 
-                    builder.create().show();
+
+
                 }
             });
           /*    int length = sslist.size();

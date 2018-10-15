@@ -4,14 +4,16 @@ public class RoomAdpaterModel {
     private String sWDBH;
     private String sXMMC;
     private String sDateYMDHMSSZ;
+    private int state;
 
     public RoomAdpaterModel() {
     }
 
-    public RoomAdpaterModel(String sWDBH, String sXMMC, String sDateYMDHMSSZ) {
+    public RoomAdpaterModel(String sWDBH, String sXMMC, String sDateYMDHMSSZ, int state) {
         this.sWDBH = sWDBH;
         this.sXMMC = sXMMC;
         this.sDateYMDHMSSZ = sDateYMDHMSSZ;
+        this.state = state;
     }
 
     public String getsWDBH() {
@@ -36,5 +38,13 @@ public class RoomAdpaterModel {
 
     public void setsDateYMDHMSSZ(String sDateYMDHMSSZ) {
         this.sDateYMDHMSSZ = sDateYMDHMSSZ;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
     }
 }

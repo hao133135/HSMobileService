@@ -1,6 +1,7 @@
 package com.qindor.hsmobileservice.Adpater;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,17 +73,17 @@ public class RoomListAdpater<T> extends BaseAdapter {
             viewHolder = (ViewHolder)convertView.getTag();
         }
         RoomAdpaterModel roomModel  = roomModels.get(position);
-        viewHolder.sWDBH.setText(roomModel.getsWDBH());
+        if (roomModel.getState()==1) {
+            viewHolder.sWDBH.setText(roomModel.getsWDBH());
+            viewHolder.sWDBH.setTextColor(Color.RED);
+        }else {
+            viewHolder.sWDBH.setText(roomModel.getsWDBH());
+        }
         viewHolder.sXMMC.setText(roomModel.getsXMMC());
-        //viewHolder.sJSXM.setText(roomModel.getsJSXM());
         int i = roomModel.getsDateYMDHMSSZ().indexOf(" ");
-        //int i1 = roomModel.getsDateYMDHMSXZ().indexOf(" ");
         if(!roomModel.getsDateYMDHMSSZ().equals("")) {
             viewHolder.sDateYMDHMSSZ.setText(roomModel.getsDateYMDHMSSZ().substring(i, roomModel.getsDateYMDHMSSZ().length()));
         }
-      /*  if(!roomModel.getsDateYMDHMSXZ().equals("")) {
-            viewHolder.sDateYMDHMSXZ.setText(roomModel.getsDateYMDHMSXZ().substring(i1, roomModel.getsDateYMDHMSXZ().length()));
-        }*/
         return convertView;
     }
 

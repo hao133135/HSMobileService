@@ -18,10 +18,11 @@ public class RoomModel implements Serializable {
     private String sDateYMDHMSXZ;//下钟时间;
     private String iZSC;//钟时长（分钟）;
     private String iSY;//钟剩余时间（分钟）;
+    private String sZT;//状态
     public RoomModel() {
     }
 
-    public RoomModel( String sDWID, String sWDBH, String sXMMC, String fXMDJ, String fSL, String fXMJE, String sJSGH, String sJSXM, String sZLX, String sDateYMDHMSSZ, String sDateYMDHMSXZ, String iZSC, String iSY) {
+    public RoomModel( String sDWID, String sWDBH, String sXMMC, String fXMDJ, String fSL, String fXMJE, String sJSGH, String sJSXM, String sZLX, String sDateYMDHMSSZ, String sDateYMDHMSXZ, String iZSC, String iSY, String sZT) {
         this.sDWID = sDWID;
         this.sWDBH = sWDBH;
         this.sXMMC = sXMMC;
@@ -35,6 +36,7 @@ public class RoomModel implements Serializable {
         this.sDateYMDHMSXZ = sDateYMDHMSXZ;
         this.iZSC = iZSC;
         this.iSY = iSY;
+        this.sZT = sZT;
     }
 
     public String getsTBH() {
@@ -70,7 +72,7 @@ public class RoomModel implements Serializable {
     }
 
     public String getfXMDJ() {
-        return String.valueOf(Double.parseDouble(fXMDJ));
+        return fXMDJ;
     }
 
     public void setfXMDJ(String fXMDJ) {
@@ -86,7 +88,7 @@ public class RoomModel implements Serializable {
     }
 
     public String getfXMJE() {
-        return String.valueOf(Double.parseDouble(fXMJE));
+        return fXMJE;
     }
 
     public void setfXMJE(String fXMJE) {
@@ -149,4 +151,11 @@ public class RoomModel implements Serializable {
         this.iSY = iSY;
     }
 
+    public String getsZT() {
+        return sZT;
+    }
+
+    public void setsZT(String sZT) {
+        this.sZT = sZT;
+    }
 }

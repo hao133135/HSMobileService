@@ -43,7 +43,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +91,7 @@ public class InformationActivity extends AppCompatActivity implements View.OnCli
     private void init() {
         dialog1=new LoadingDialog.Builder(InformationActivity.this)
                 .setMessage("加载中...")
-                .setCancelable(false).create();
+                .setCancelable(true).create();
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         sbtn = findViewById(R.id.information_scanner);
         outBtn = findViewById(R.id.information_wristband_off);
@@ -119,7 +121,7 @@ public class InformationActivity extends AppCompatActivity implements View.OnCli
         sbtn.setOnClickListener(this);
         outBtn.setOnClickListener(this);
         getData();
-        checkNfc();
+       // checkNfc();
         onNewIntent(getIntent());
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -183,7 +185,7 @@ public class InformationActivity extends AppCompatActivity implements View.OnCli
                 }
                 for (int i=0;i<jsonArray.length();i++) {
                     JSONObject jsonObject1 = (JSONObject) jsonArray.get(i);
-                    RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"),jsonObject1.getString("sWDBH"),jsonObject1.getString("sXMMC"),jsonObject1.getString("fXMDJ"),jsonObject1.getString("fSL"),jsonObject1.getString("fXMJE"),jsonObject1.getString("sJSGH"),jsonObject1.getString("sJSXM"),jsonObject1.getString("sZLX"),jsonObject1.getString("sDateYMDHMSSZ"),jsonObject1.getString("sDateYMDHMSXZ"),jsonObject1.getString("iZSC"),jsonObject1.getString("iSY"));
+                    RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"),jsonObject1.getString("sWDBH"),jsonObject1.getString("sXMMC"),jsonObject1.getString("fXMDJ"),jsonObject1.getString("fSL"),jsonObject1.getString("fXMJE"),jsonObject1.getString("sJSGH"),jsonObject1.getString("sJSXM"),jsonObject1.getString("sZLX"),jsonObject1.getString("sDateYMDHMSSZ"),jsonObject1.getString("sDateYMDHMSXZ"),jsonObject1.getString("iZSC"),jsonObject1.getString("iSY"),jsonObject1.getString("sZT"));
                     roomModel.setsTBH(informationModel.getsTBH());
                     rmodels.getModels().add(roomModel);
                 }
@@ -219,17 +221,43 @@ public class InformationActivity extends AppCompatActivity implements View.OnCli
     };
     public void loadView(final List<RoomModel> roomModels){
         final List<RoomAdpaterModel> list = new ArrayList<>();
+        String sd="";
         for (RoomModel r : roomModels)
         {
-            if (!r.getsZLX().equals("商品"))
-            list.add(new RoomAdpaterModel(r.getsWDBH(),r.getsXMMC(),r.getsDateYMDHMSSZ()));
+            if (!r.getsZLX().equals("商品")) {
+                if (r.getsZLX().equals("首钟")||r.getsZLX().equals("加钟")) {
+                    list.add(new RoomAdpaterModel(r.getsWDBH(), r.getsXMMC(), r.getsDateYMDHMSSZ(), 0));
+                }else {
+                    sd = r.getsWDBH();
+                    list.add(new RoomAdpaterModel(r.getsWDBH(), r.getsXMMC(), r.getsDateYMDHMSSZ(), 1));
+                }
+            }
         }
         for  ( int  i  =   0 ; i  <  list.size()  -   1 ; i ++ )  {
             for  ( int  j  =  list.size()  -   1 ; j  >  i; j -- )  {
                 if  (list.get(j).getsWDBH().equals(list.get(i).getsWDBH()))  {
-                    list.remove(j);
+                    try {
+                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        Date time1 = formatter.parse(list.get(j).getsDateYMDHMSSZ());
+                        Date time2 = formatter.parse(list.get(i).getsDateYMDHMSSZ());
+                        if (time1.before(time2)) {
+                            list.remove(j);
+                        }else {
+                            list.remove(i);
+                        }
+                    }catch (Exception e){
+                        msg = e.toString();
+                        handler.post(toast);
+                    }
                 }
             }
+        }
+        for (int i =0;i<list.size();i++)
+        {
+           if(list.get(i).getsWDBH().equals(sd))
+           {
+               list.get(i).setState(1);
+           }
         }
         roomListAdpater = new RoomListAdpater(InformationActivity.this,list,R.layout.room_information_items);
         listView.setAdapter(roomListAdpater);
