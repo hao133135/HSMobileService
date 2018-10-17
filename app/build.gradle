@@ -6,7 +6,7 @@ android {
         applicationId "com.qindor.hsmobileservice"
         minSdkVersion 18
         targetSdkVersion 27
-        versionCode 20180925
+        versionCode 20181017
         versionName "1.0.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
