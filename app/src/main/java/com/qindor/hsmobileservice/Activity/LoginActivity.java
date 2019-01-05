@@ -1,9 +1,11 @@
 package com.qindor.hsmobileservice.Activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.device.PrinterManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -24,11 +26,15 @@ import com.qindor.hsmobileservice.Utils.Configuration;
 import com.qindor.hsmobileservice.Utils.HttpUtils;
 import com.qindor.hsmobileservice.Utils.LoadingDialog;
 import com.qindor.hsmobileservice.Utils.MD5Utils;
+import com.qindor.hsmobileservice.Utils.clickUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,19 +49,20 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
     private Button loginBtn;
     private ImageButton setBtn;
     private TextView loginUser,loginPwd;
-    private String msg,user,pwd,resultData,sKey,sSign,st;
+    private String msg,user,pwd,resultData,sKey,sSign,st,mode;
     private Handler handler;
     private HttpUtils httpUtils;
     private BaseModel baseModel;
     private Configuration configuration;
-    private Map<String, Object>  map;
     private LoadingDialog dialog1;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         init();
+
     }
 
     private void init() {
@@ -69,9 +76,10 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
         loginPwd = findViewById(R.id.hotspring_login_password);
         SharedPreferences sharedPreferences=getSharedPreferences("config",0);
         baseModel = new BaseModel(sharedPreferences.getString("ip",""),sharedPreferences.getString("store",""),sharedPreferences.getString("library",""),sharedPreferences.getString("mac",""),sharedPreferences.getString("port",""));    httpUtils = new HttpUtils();
+        loginUser.setText(sharedPreferences.getString("userid",""));
+        mode =sharedPreferences.getString("mode","支付模式");
         configuration = new Configuration();
         handler = new Handler();
-        map = new HashMap<String, Object>();
         loginBtn.setOnClickListener(this);
         setBtn.setOnClickListener(this);
         if (!isNetworkAvailable(LoginActivity.this))
@@ -87,17 +95,25 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
         switch (v.getId())
         {
             case R.id.hotspring_login_btn:
-                if (baseModel.getIp()!=null&&!"".equals(baseModel.getIp())) {
-                   login();
-                   /* startActivity(configuration.getIntent(LoginActivity.this,RoomActivity.class));
+                if(clickUtils.isFastClick()){
+                    dialog1.show();
+                    if (baseModel.getIp()!=null&&!"".equals(baseModel.getIp())) {
+                        login();
+                  /*  startActivity(configuration.getIntent(LoginActivity.this,Room_wristband_Activity.class));
                     finish();*/
-                }else {
-                    msg="没有配置IP地址";
-                    handler.post(toast);
+                    }else {
+                        dialog1.dismiss();
+                        msg="没有配置IP地址";
+                        handler.post(toast);
+                    }
                 }
+                //test();
                 break;
             case R.id.login_set_btn:
-                configuration();
+                if(clickUtils.isFastClick()){
+                    configuration();
+                }
+
                 break;
         }
     }
@@ -110,6 +126,7 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
         user = loginUser.getText().toString();
         pwd = loginPwd.getText().toString();
         if (user.equals("") || pwd.equals("")) {
+            dialog1.dismiss();
             msg="请输入用户名和密码";
             handler.post(toast);
         } else  {
@@ -125,6 +142,7 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
                 mOkHttpClient.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
+                        dialog1.dismiss();
                         msg="服务器链接失败";
                         handler.post(toast);
                     }
@@ -168,21 +186,28 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
                 //提交数据
                 editor.commit();
                 handler.post(setbtns);
-                startActivity(configuration.getIntent(LoginActivity.this,RoomActivity.class));
+                dialog1.dismiss();
+                if(mode.equals("支付模式")) {
+                    startActivity(configuration.getIntent(LoginActivity.this, Room_pay_Activity.class));
+                }else if(mode.equals("腕带模式")){
+                    startActivity(configuration.getIntent(LoginActivity.this, Room_wristband_Activity.class));
+                }
                 finish();
             }
             else
             {
+                dialog1.dismiss();
                 msg = jsonObject.getString("msg");
                 handler.post(toast);
             }
         } catch (JSONException e) {
+            dialog1.dismiss();
             e.printStackTrace();
         }
 
     }
     private void query() {
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","getfdh");
         JSONObject data = new JSONObject();
         try {
@@ -312,4 +337,123 @@ public class LoginActivity extends Commontools implements View.OnClickListener {
 
         builder.create().show();
     }
+
+    private PrinterManager printer = new PrinterManager();
+    private final static String PRNT_ACTION = "android.prnt.message";
+    public void test(){
+        int openState =printer.getStatus();
+        printer.prn_open();
+        printer.prn_setupPage(380, -1);
+        doPrintRentInfo();
+//        printer.prn_drawTextEx("租赁信息\n租赁信息租赁信息租赁信息租赁信息租赁信息\n租赁信息租赁信息租赁信息\n\n\n\n", 0, 0,360,-1, "宋体", 28, 0,0x0000, 0);
+        printer.prn_printPage(0);
+        printer.prn_close();
+    }
+    private void doPrintRentInfo( ) {
+      /*  if (mPaySuccessBean == null) {
+
+            EventBus.getDefault().post(new EventMsg(PRINTSUCCESSCODE, "打印失败"));
+        }
+        LeaseBean u = mPaySuccessBean.getmLeaseBean();*/
+        // 标准打印，每个字符打印所占位置可能有一点出入（尤其是英文字符）
+        String mediumSpline = "";
+        for (int i = 0; i < 45; i++) {
+            mediumSpline += "-";
+        }
+        int width = 360;
+        String frontName = "宋体";
+        int frontType = 0x0000;
+        int frontSize = 24;
+        printer.prn_drawTextEx("四季贵州移动服务端", 50, 30, width, -1, frontName, 30, 0, frontType, 0);
+        printer.prn_drawTextEx("商品消费收据", 100, 70, width, -1, frontName, 30, 0, frontType, 0);
+        printer.prn_drawTextEx("设备名称：0000",0,100,width,-1,frontName,frontSize,0,frontType,0);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        StringBuffer sb = new StringBuffer();
+        sb.append("\n时  间：");
+        sb.append(df.format(new Date()));
+        sb.append("\n");
+        sb.append("收 单 人：");
+        sb.append(msg);
+        sb.append("\n");
+        sb.append("单 据 号：");
+        sb.append("0000");
+        sb.append("\n");
+        sb.append(mediumSpline);
+        int cont = 0;
+        /*for (RoomModel r:model.getModels()) {
+            if(r.getsZT().equals(th)){
+                sb.append("\n名称："+r.getsXMMC()+"\n单价："+r.getfXMDJ()+"\n数量："+r.getfSL());
+                cont+=Integer.parseInt( r.getfSL());
+            }
+        }*/
+        for (int i=0;i<3;i++){
+            sb.append("\n名称：名称+"+i+"\n单价：单价+"+i+"\n数量："+i);
+        }
+        sb.append("\n");
+        sb.append(mediumSpline);
+        sb.append("\n");
+        sb.append("数量合计：");
+        sb.append(cont);
+        sb.append("\n");
+        sb.append("金额合计：");
+        sb.append("100");
+        sb.append("\n");
+        sb.append(mediumSpline);
+        sb.append("\n");
+        String payType = "";
+        /*if(barCode.length()==18){
+            int tp = Integer.parseInt(barCode.substring(0,2));
+            if(tp==10||tp==11||tp==12||tp==13||tp==14||tp==15){
+                //（0腕带挂账、1微信、2支付宝）
+                payType = "微信";
+            }else if(tp==18||tp==28)
+            {
+                payType = "支付宝";
+            }
+        }else {
+            payType = "腕带挂账";
+        }*/
+        sb.append("消费方式：");
+        sb.append("微信");
+        sb.append("\n");
+        sb.append("消费店号：");
+        sb.append(baseModel.getStoreNum());
+        sb.append("\n");
+        sb.append("欢迎光临，谢谢惠顾");
+        sb.append("\n");
+        sb.append("\n");
+        sb.append("\n");
+        sb.append("\n");
+        printer.prn_drawTextEx(sb.toString(), 0, 110, width, -1, frontName, frontSize, 0, frontType, 0);
+    }
+
+
+    /**
+     * 计算空格
+     *
+     * @param size
+     * @return
+     */
+    public static String getBlankBySize(int size) {
+        String resultStr = "";
+        for (int i = 0; i < size; i++) {
+            resultStr += " ";
+        }
+        return resultStr;
+    }
+
+
+    /**
+     * 获取数据长度
+     *
+     * @param msg
+     * @return
+     */
+    @SuppressLint("NewApi")
+    public static int getBytesLength(String msg) {
+        return msg.getBytes(Charset.forName("GB2312")).length;
+    }
+
+
+
 }

@@ -1,13 +1,22 @@
 package com.qindor.hsmobileservice.Activity;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.device.PiccManager;
+import android.device.ScanManager;
+import android.device.scanner.configuration.PropertyID;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -41,6 +50,7 @@ import com.qindor.hsmobileservice.Utils.Configuration;
 import com.qindor.hsmobileservice.Utils.Constant;
 import com.qindor.hsmobileservice.Utils.HttpUtils;
 import com.qindor.hsmobileservice.Utils.LoadingDialog;
+import com.qindor.hsmobileservice.Utils.clickUtils;
 import com.qindor.hsmobileservice.Utils.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
@@ -54,6 +64,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -61,7 +73,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class RoomActivity extends AppCompatActivity implements View.OnClickListener {
+public class Room_wristband_Activity extends AppCompatActivity implements View.OnClickListener {
     private List<RoomModel> roomModels = new ArrayList<>();
     private RegionModel regionModel;
     private View v1,v2;
@@ -72,7 +84,6 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     private HttpUtils httpUtils;
     private BaseModel baseModel;
     private Configuration configuration;
-    private Map<String, Object> map;
     private List<InformationModel> informationModels ;
     private boolean sbool;
     private List<String> sslist = new ArrayList<>();
@@ -96,6 +107,9 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     private RoomDialogAdpater roomDialogAdpater;
     private RoomQueryAdpater roomQueryAdpater;
     private ListView dlistView,qlistView;
+    private PiccManager piccReader;
+    private Timer timer;
+    private static long lastClickTime1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -105,7 +119,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void init() {
-        dialog1=new LoadingDialog.Builder(RoomActivity.this)
+        dialog1=new LoadingDialog.Builder(Room_wristband_Activity.this)
                 .setMessage("加载中...")
                 .setCancelable(true).create();
         gridview = (GridView) findViewById(R.id.GridView);
@@ -116,9 +130,11 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         region = findViewById(R.id.room_region);
         title = findViewById(R.id.hotspring_title);
         title.setText("台区域");
+        code="";
         v1 = findViewById(R.id.room_icon_view);
         v2 = findViewById(R.id.room_list_view);
         regionModel = new RegionModel();
+        piccReader = new PiccManager();
         SharedPreferences sharedPreferences=getSharedPreferences("config",0);
         userid = sharedPreferences.getString("userid","");
         sKey = sharedPreferences.getString("sKey","");
@@ -128,9 +144,9 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         imodel = new InformationModel();
         configuration = new Configuration();
         handler = new Handler();
-        map = new HashMap<String, Object>();
         informationModels = new ArrayList<>();
         sbool = false;
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         swicthView();
         regionDialogBtn.setOnClickListener(this);
         queryBtn.setOnClickListener(this);
@@ -144,12 +160,13 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             isDate=true;
         }
 
+        piccReader.open();
 
     }
 
     private void getData(RegionModel regionModel) {
         //{"code":"gettls","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sQYH":"001002"}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","gettls");
         JSONObject data = new JSONObject();
         try {
@@ -219,7 +236,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
 
     private void getRegionData() {
         //{"code":"gettqy","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148"}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","gettqy");
         JSONObject data = new JSONObject();
         try {
@@ -266,13 +283,24 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                     rmap.put(jsonObject1.getString("sQYH"),jsonObject1.getString("sQYM"));
                     sslist.add(jsonObject1.getString("sQYM"));
                 }
-                if(regionName!=""&&rmap!=null)
+                if(rmap!=null)
                 {
-                    re = regionName;
-                    myHandler.sendEmptyMessageDelayed(0, 1000);
+                    if(!regionName.equals("")) {
+                        re = regionName;
+                        myHandler.sendEmptyMessageDelayed(0, 1000);
+                    }else {
+                        re = jsonArray.getJSONObject(0).getString("sQYM");
+                        myHandler.sendEmptyMessageDelayed(0, 1000);
+                    }
                 }else {
+                    msg = "获取区域失败";
+                    handler.post(toast);
                     dialog1.dismiss();
                 }
+            }else
+            {
+                msg =resultData;
+                handler.post(toast);
             }
         } catch (JSONException e) {
             dialog1.dismiss();
@@ -311,10 +339,11 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                code="";
                 if(isOpen(informationModelss.get(position)))
                 {
                     saveData(informationModelss.get(position));
-                    startActivity(configuration.getIntent(RoomActivity.this,InformationActivity.class));
+                    startActivity(configuration.getIntent(Room_wristband_Activity.this,Information_wristband_Activity.class));
                     finish();
                 }else {
                     th = informationModelss.get(position).getsTBH();
@@ -328,10 +357,11 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                code="";
                 if(isOpen(informationModelss.get(position)))
                 {
                     saveData(informationModelss.get(position));
-                    startActivity(configuration.getIntent(RoomActivity.this,InformationActivity.class));
+                    startActivity(configuration.getIntent(Room_wristband_Activity.this,Information_wristband_Activity.class));
                     finish();
                 }else {
                     th = informationModelss.get(position).getsTBH();
@@ -341,14 +371,18 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-
+    private boolean type = false;
+    int scan_card = -1;
+    int SNLen = -1;
     private void openInformation() {
-        new AlertDialog.Builder(RoomActivity.this)
+        type = true;
+        timer = new Timer();
+        timer.schedule(new Task(), 0,1 * 200);
+        openDialog =  new AlertDialog.Builder(Room_wristband_Activity.this)
                 .setTitle("开台提示")
-                .setMessage("\n\t\t\t\t是否开台！\t\n")
+                .setMessage("\n是否开台！\t\n1.使用黄色物理键扫码开台\n2.点击确认进行摄像头扫码开台\n3.点击取消返回上一界面\n")
                 .setNegativeButton("确认",
                         new DialogInterface.OnClickListener() {
-
                             @Override
                             public void onClick(DialogInterface dialog,
                                                 int which) {
@@ -362,18 +396,81 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                             @Override
                             public void onClick(DialogInterface dialog,
                                                 int which) {
+                                timer.cancel();
+                                getRegionData();
                                 dialog.dismiss();
                             }
                         }).show();
+
     }
+    public class Task extends TimerTask {
+        public void run(){
+            byte CardType[] = new byte[2];
+            byte Atq[] = new byte[14];
+            char SAK = 1;
+            byte sak[] = new byte[1];
+            sak[0] = (byte) SAK;
+            byte SN[] = new byte[10];
+            scan_card = piccReader.request(CardType, Atq);
+            if(scan_card > 0) {
+                SNLen = piccReader.antisel(SN, sak);
+                String c = bytesToHexString(SN, SNLen);
+                String code1 ="";
+                for (int i=0;i<c.length();i+=2)
+                {
+                    String c1 = c;
+                    code1 = c1.substring(i,i+2)+code1;
+                }
+                String c1 = code1.substring(2,code1.length());
+                String x = String.valueOf(Integer.parseInt(c1,16));
+                if (x.length()<8)
+                {
+                    for(int i = x.length();i<8;i++) {
+                        x = "0" + x;
+                    }
+                }
+                code = x;
+               /* msg = c+"/"+x;
+                handler.post(toast);
+*/
+                long curClickTime = System.currentTimeMillis();
+                if ((curClickTime - lastClickTime1) >= 2000) {
+                    openDialog.dismiss();
+                    handler.post(getIData);
+                }
+                lastClickTime1 = curClickTime;
+
+            }
+        }
+    }
+    public static String bytesToHexString(byte[] src, int len) {
+        StringBuilder stringBuilder = new StringBuilder("");
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        if (len <= 0) {
+            return "";
+        }
+        for (int i = 0; i < len; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
+    }
+
+
     private void scanMethod() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             // 申请权限
-            ActivityCompat.requestPermissions(RoomActivity.this, new String[]{Manifest.permission.CAMERA}, Constant.REQ_PERM_CAMERA);
+            ActivityCompat.requestPermissions(Room_wristband_Activity.this, new String[]{Manifest.permission.CAMERA}, Constant.REQ_PERM_CAMERA);
             return;
         }
         // 二维码扫码
-        Intent intent = new Intent(RoomActivity.this, CaptureActivity.class);
+        Intent intent = new Intent(Room_wristband_Activity.this, CaptureActivity.class);
         startActivityForResult(intent, REQUEST_CODE);
     }
     @Override
@@ -392,7 +489,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void run() {
             //{"code":"dotkt","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sWD":"WQT0182","sTH":"301"}}
-            map.clear();
+            Map<String, Object> map = new HashMap<>();
             map.put("code","dotkt");
             JSONObject data = new JSONObject();
             try {
@@ -421,6 +518,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                     resultData="";
                     resultData = response.body().string();
                     //returnedData(resultData);
+                    timer.cancel();
                     try {
                         JSONObject jsonObject = new JSONObject(resultData);
                         if (jsonObject.getString("ret").equals("0"))
@@ -435,24 +533,6 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
             });
-           /* new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-                    try {
-                        JSONObject jsonObject = new JSONObject(resultData);
-                        msg = jsonObject.getString("msg");
-                        handler.post(toast);
-                        handler.post(toInfo);
-                    } catch (JSONException e) {
-                        msg = e.toString();
-                        handler.post(toast);
-                    }
-                }
-            }).start();*/
-
-            //resultData = httpUtils.baseHttp(InformationActivity.this,baseModel,"spring",map);
-            //resultData = "{\"code\":\"dotkt \",\"ret\":\"0\",\"msg\":\"开台成功\"}";
 
         }
     };
@@ -460,7 +540,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void run() {
             saveData(imodel);
-            startActivity(configuration.getIntent(RoomActivity.this,InformationActivity.class));
+            startActivity(configuration.getIntent(Room_wristband_Activity.this,Information_wristband_Activity.class));
             finish();
         }
     };
@@ -524,7 +604,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
     Runnable setListData = new Runnable() {
         @Override
         public void run() {
-            roomDialogAdpater = new RoomDialogAdpater(RoomActivity.this,sslist,R.layout.service_room_icon);
+            roomDialogAdpater = new RoomDialogAdpater(Room_wristband_Activity.this,sslist,R.layout.service_room_icon);
             dlistView.setAdapter(roomDialogAdpater);
             dlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -566,7 +646,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
             for (InformationModel i : informationModels) {
                 slist.add(i.getsTBH());
             }
-            roomQueryAdpater = new RoomQueryAdpater(RoomActivity.this,slist,R.layout.service_query_icon);
+            roomQueryAdpater = new RoomQueryAdpater(Room_wristband_Activity.this,slist,R.layout.service_query_icon);
             qlistView.setAdapter(roomQueryAdpater);
             qlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -595,6 +675,9 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
                 //region.setText("台区域："+re);
                 title.setText("台区域："+re);
                 getData(regionModel1);
+            }else {
+                regionName="";
+                returnedData(resultData);
             }
         }
     };
@@ -632,7 +715,7 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
     public void back(){
-        startActivity(configuration.getIntent(RoomActivity.this,LoginActivity.class));
+        startActivity(configuration.getIntent(Room_wristband_Activity.this,LoginActivity.class));
         finish();
     }
     /**
@@ -654,20 +737,114 @@ public class RoomActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId())
         {
             case R.id.room_view_region:
-                showSetDeBugDialog();
+                if(clickUtils.isFastClick()){
+                    showSetDeBugDialog();
+                }
+
                 break;
             case R.id.room_view_query:
-                if (informationModels.size()!=0) {
-                    showSetQueryDialog();
-                }else {
-                    msg="请选择区域";
-                    handler.post(toast);
+                if(clickUtils.isFastClick()){
+                    if (informationModels.size()!=0) {
+                        showSetQueryDialog();
+                    }else {
+                        msg="请选择区域";
+                        handler.post(toast);
+                    }
                 }
+
                 break;
             case R.id.room_view_switch_btn:
-                swicthView();
+                if(clickUtils.isFastClick()){
+                    swicthView();
+                }
+
                 break;
         }
     }
+    private AlertDialog openDialog;
+    private Vibrator mVibrator;
+    private ScanManager mScanManager;
+    private SoundPool soundpool = null;
+    private boolean isScaning = false;
+    private int soundid;
+    private String barcodeStr;
+    private static long lastClickTime;
+    private final static String SCAN_ACTION = ScanManager.ACTION_DECODE;
+    private BroadcastReceiver mScanReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // TODO Auto-generated method stub
+            isScaning = false;
+            soundpool.play(soundid, 1, 1, 0, 0, 1);
+            //showScanResult.setText("");
+            mVibrator.vibrate(100);
+            byte[] barcode = intent.getByteArrayExtra(ScanManager.DECODE_DATA_TAG);
+            int barcodelen = intent.getIntExtra(ScanManager.BARCODE_LENGTH_TAG, 0);
+            byte temp = intent.getByteExtra(ScanManager.BARCODE_TYPE_TAG, (byte) 0);
+            android.util.Log.i("debug", "----codetype--" + temp);
+            barcodeStr = new String(barcode, 0, barcodelen);
+            code = barcodeStr;
+            long curClickTime = System.currentTimeMillis();
+            if ((curClickTime - lastClickTime) >= 2000) {
+                if(type) {
+                    handler.post(getIData);
+                    openDialog.dismiss();
+                    type = false;
+                }
+            }
+            lastClickTime = curClickTime;
+
+            //showScanResult.setText(barcodeStr);
+
+        }
+
+    };
+    private void initScan() {
+        // TODO Auto-generated method stub
+        mScanManager = new ScanManager();
+        mScanManager.openScanner();
+
+        mScanManager.switchOutputMode( 0);
+        soundpool = new SoundPool(1, AudioManager.STREAM_NOTIFICATION, 100); // MODE_RINGTONE
+        soundid = soundpool.load("/etc/Scan_new.ogg", 1);
+    }
+    @Override
+    protected void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        // TODO Auto-generated method stub
+        super.onPause();
+        if(mScanManager != null) {
+            mScanManager.stopDecode();
+            isScaning = false;
+        }
+        unregisterReceiver(mScanReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        // TODO Auto-generated method stub
+        super.onResume();
+        initScan();
+        IntentFilter filter = new IntentFilter();
+        int[] idbuf = new int[]{PropertyID.WEDGE_INTENT_ACTION_NAME, PropertyID.WEDGE_INTENT_DATA_STRING_TAG};
+        String[] value_buf = mScanManager.getParameterString(idbuf);
+        if(value_buf != null && value_buf[0] != null && !value_buf[0].equals("")) {
+            filter.addAction(value_buf[0]);
+        } else {
+            filter.addAction(SCAN_ACTION);
+        }
+
+        registerReceiver(mScanReceiver, filter);
+    }
+
+
+
+
 
 }

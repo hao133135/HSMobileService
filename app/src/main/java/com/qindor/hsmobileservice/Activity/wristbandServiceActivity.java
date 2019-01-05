@@ -1,11 +1,24 @@
 package com.qindor.hsmobileservice.Activity;
 
+import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.device.PiccManager;
+import android.device.ScanManager;
+import android.device.scanner.configuration.PropertyID;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.view.KeyEvent;
@@ -22,8 +35,11 @@ import com.qindor.hsmobileservice.Model.RoomsModel;
 import com.qindor.hsmobileservice.Model.TechnicianModel;
 import com.qindor.hsmobileservice.R;
 import com.qindor.hsmobileservice.Utils.Configuration;
+import com.qindor.hsmobileservice.Utils.Constant;
 import com.qindor.hsmobileservice.Utils.HttpUtils;
 import com.qindor.hsmobileservice.Utils.LoadingDialog;
+import com.qindor.hsmobileservice.Utils.clickUtils;
+import com.qindor.hsmobileservice.Utils.zxing.activity.CaptureActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,6 +55,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -46,12 +64,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class SellServiceActivity  extends AppCompatActivity implements View.OnClickListener{
+public class wristbandServiceActivity extends AppCompatActivity implements View.OnClickListener{
     private Button b1,b2;
     private Configuration configuration;
     private Handler handler;
     private String msg,tec,tecNum;
-    private Map map;
     private BaseModel baseModel;
     private RoomsModel roomModel;
     private String resultData,pro1,pro2,userid,sKey;
@@ -64,6 +81,9 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
     private HttpUtils httpUtils;
     private LoadingDialog dialog1;
     private View v1,v2,v3;
+    private PiccManager piccReader;
+    private static long lastClickTime,lastClickTime1;
+    private Timer timer;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,10 +93,11 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
     }
 
     private void init() {
-        dialog1=new LoadingDialog.Builder(SellServiceActivity.this)
+        dialog1=new LoadingDialog.Builder(wristbandServiceActivity.this)
                 .setMessage("加载中...")
                 .setCancelable(true).create();
         httpUtils = new HttpUtils();
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         b1 = findViewById(R.id.room_wristband_service_btn);
         b2 = findViewById(R.id.room_wristband_service_out_btn);
         t1 = findViewById(R.id.room_wristband_service_iSZZC);
@@ -91,12 +112,13 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
         v3 = findViewById(R.id.service_technician);
         //spinner = findViewById(R.id.service_t_sp);
         title = findViewById(R.id.hotspring_title);
+        piccReader = new PiccManager();
         title.setText("购买服务");
         SharedPreferences sharedPreferences=getSharedPreferences("config",0);
         baseModel = new BaseModel(sharedPreferences.getString("ip",""),sharedPreferences.getString("store",""),sharedPreferences.getString("library",""),sharedPreferences.getString("mac",""),sharedPreferences.getString("port",""));
         isDate = sharedPreferences.getBoolean("isDate",false);
-        tec = sharedPreferences.getString("tec", "");
-        tecNum = sharedPreferences.getString("tecNum", "");
+        //tec = sharedPreferences.getString("tec", "");
+        //tecNum = sharedPreferences.getString("tecNum", "");
         String temp = sharedPreferences.getString("rooms", "");
         ByteArrayInputStream bais =  new ByteArrayInputStream(Base64.decode(temp.getBytes(), Base64.DEFAULT));
         try {
@@ -113,12 +135,14 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
         technicianModels = new ArrayList<>();
         handler = new Handler();
         tslist = new ArrayList<>();
-        map = new HashMap();
         b1.setOnClickListener(this);
         b2.setOnClickListener(this);
         v1.setOnClickListener(this);
         v2.setOnClickListener(this);
         v3.setOnClickListener(this);
+        piccReader.open();
+        timer = new Timer();
+        timer.schedule(new Task(),0, 1 * 200);
         //getTData();
         if(!sharedPreferences.getString("projectAndPlistModel", "").equals("")) {
             if (isDate) {
@@ -155,54 +179,16 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
         }else {
             t5.setText("服务项目");
         }
-        if (!sharedPreferences.getString("tec","").equals(""))
+        t6.setText("技师扫码");
+        /*if (!sharedPreferences.getString("tec","").equals(""))
         {
-            t6.setText("技师姓名："+sharedPreferences.getString("tec",""));
+            t6.setText("技师工号："+sharedPreferences.getString("tec",""));
         }else {
-            t6.setText("技师选择/自动分配");
-        }
+            t6.setText("技师扫码");
+        }*/
     }
 
-    /* private void loadView(List<ProjectModel> projectModels) {
-         int length = projectModels.size();
-         //生成动态数组，并且转入数据
-         ArrayList<HashMap<String, Object>> lstImageItem = new ArrayList<HashMap<String, Object>>();
-         for (int i = 0; i < length; i++) {
-             HashMap<String, Object> map = new HashMap<String, Object>();
-             map.put("sXMLX", projectModels.get(i).getsXMLX());
-             lstImageItem.add(map);
-         }
-         lstImageItem = getSingle(lstImageItem);
-         //生成适配器的ImageItem 与动态数组的元素相对应
-         saImageItems = new SimpleAdapter(this,
-                 lstImageItem,//数据来源
-                 R.layout.service_icon_items,//item的XML实现
-                 //动态数组与ImageItem对应的子项
-                 new String[]{"sXMLX"},
-                 //ImageItem的XML文件里面的一个ImageView,两个TextView ID
-                 new int[]{R.id.service_btn});
-         //添加并且显示
-         gridView1.setAdapter(saImageItems);
-         final ArrayList<HashMap<String, Object>> finalLstImageItem = lstImageItem;
-         gridView1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-             @Override
-             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                 pro1 = finalLstImageItem.get(position).get("sXMLX").toString();
-                 for (int i=0;i< parent.getCount();i++)
-                 {
-                     View v=parent.getChildAt(i);
-                     if (position == i) {
-                         TextView mChoosedTv = (TextView) v.findViewById(R.id.service_btn);
-                         mChoosedTv.setBackgroundResource(R.drawable.shape_edit_back_green);
-                     } else {
-                         TextView mNormalTv = (TextView) v.findViewById(R.id.service_btn);
-                         mNormalTv.setBackgroundResource(R.drawable.shape_ac_login_btn_back_fill);
-                     }
-                 }
-                 handler.post(loadPro);
-             }
-         });
-     }*/
+
     public static ArrayList getSingle(ArrayList list){
         ArrayList newList = new ArrayList();     //创建新集合
         Iterator it = list.iterator();        //根据传入的集合(旧集合)获取迭代器
@@ -214,74 +200,10 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
         }
         return newList;
     }
-   /* Runnable loadPro = new Runnable() {
-        @Override
-        public void run() {
-            setPData(projectAndPlistModel.getProjectModels());
-        }
-    };*/
 
-  /*  private void setPData(List<ProjectModel> projectModels) {
-        int length = projectModels.size();
-        //生成动态数组，并且转入数据
-        ArrayList<HashMap<String, Object>> lstImageItem = new ArrayList<HashMap<String, Object>>();
-        for (int i = 0; i < length; i++) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            if (pro1.equals(projectModels.get(i).getsXMLX()))
-            {
-                map.put("sXMMC", projectModels.get(i).getsXMMC());
-                lstImageItem.add(map);
-            }
-        }
-        lstImageItem = getSingle(lstImageItem);
-        //生成适配器的ImageItem 与动态数组的元素相对应
-        saImageItems = new SimpleAdapter(this,
-                lstImageItem,//数据来源
-                R.layout.service_icon_items,//item的XML实现
-                //动态数组与ImageItem对应的子项
-                new String[]{"sXMMC"},
-                //ImageItem的XML文件里面的一个ImageView,两个TextView ID
-                new int[]{R.id.service_btn});
-        //添加并且显示
-        gridView2.setAdapter(saImageItems);
-        final ArrayList<HashMap<String, Object>> finalLstImageItem = lstImageItem;
-        gridView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                pro2 = finalLstImageItem.get(position).get("sXMMC").toString();
-                for (int i=0;i< parent.getCount();i++)
-                {
-                    View v=parent.getChildAt(i);
-                    if (position == i) {
-                        TextView mChoosedTv = (TextView) v.findViewById(R.id.service_btn);
-                        mChoosedTv.setBackgroundResource(R.drawable.shape_edit_back_green);
-                    } else {
-                        TextView mNormalTv = (TextView) v.findViewById(R.id.service_btn);
-                        mNormalTv.setBackgroundResource(R.drawable.shape_ac_login_btn_back_fill);
-                    }
-                }
-                handler.post(loadTer);
-            }
-        });
-    }*/
-   /* Runnable loadTer = new Runnable() {
-
-        @Override
-        public void run() {
-            getTData();
-            for (ProjectModel p : projectAndPlistModel.getProjectModels()) {
-                if (p.getsXMMC().equals(pro2)) {
-                    t1.setText(p.getiSZZC());
-                    p1.setText(p.getfSZDJ());
-                    t2.setText(p.getiJZZC());
-                    p2.setText(p.getfJZDJ());
-                }
-            }
-        }
-    };*/
     private void getPData() {
         //{"code":"getjxm","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148"}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","getjxm");
         JSONObject data = new JSONObject();
         try {
@@ -351,14 +273,10 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
             e.printStackTrace();
         }
     }
-    /*Runnable setPTData = new Runnable() {
-        @Override
-        public void run() {
-            loadView(projectAndPlistModel.getProjectModels());
-        }
-    };*/
+
     private void getTData() {
         //{"code":"getjsl","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148"}}
+        Map<String, Object> map = new HashMap<>();
         map.put("code","getjsl");
         JSONObject data = new JSONObject();
         try {
@@ -386,17 +304,7 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
                 returnedTData(resultData);
             }
         });
-        //resultData = httpUtils.baseOkHttp(baseModel,userid,sKey,map);
-        //resultData = "{\"code\":\"getjsl \",\"ret\":\"0\",\"msg\":[{\"sGH\":\"A001\",\"sXM\":\"张三\",\"sBM\":\"桑拿部\",\"sGZ\":\"桑拿技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"},{\"sGH\":\"B001\",\"sXM\":\"李四\",\"sBM\":\"足浴部\",\"sGZ\":\"足浴技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"}]}";
-        //returnedTData(resultData);
-       /* new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //resultData = httpUtils.baseHttp(WristbandActivity.this,baseModel,"spring",map);
-                resultData = "{\"code\":\"getjsl \",\"ret\":\"0\",\"msg\":[{\"sGH\":\"A001\",\"sXM\":\"张三\",\"sBM\":\"桑拿部\",\"sGZ\":\"桑拿技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"},{\"sGH\":\"B001\",\"sXM\":\"李四\",\"sBM\":\"足浴部\",\"sGZ\":\"足浴技师\",\"sJB\":\"高级\",\"sZT\":\"空闲\",\"sXB\":\"女\"}]}";
-                returnedTData(resultData);
-            }
-        }).start();*/
+
     }
 
     private void returnedTData(String resultData) {
@@ -426,34 +334,7 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
             e.printStackTrace();
         }
     }
-  /*  class TSpinnerTask extends AsyncTask<Object, Void, List<String>>
-    {
-        @Override
-        protected List<String> doInBackground(Object... params) {
-            return tslist;
-        }
-        @Override
-        protected void onPostExecute(List<String> result) {
-            // TODO Auto-generated method stub
-            tspinnerClick();
-        }
-    }*/
 
-
-    /*private void tspinnerClick() {
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, tslist);
-        //第三步：为适配器设置下拉列表下拉时的菜单样式。
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //第四步：将适配器添加到下拉列表上
-        spinner.setAdapter(adapter);
-        int k= adapter.getCount();
-        for(int i=0;i<k;i++){
-            if("自动分配".equals(adapter.getItem(i).toString())){
-                spinner.setSelection(i,true);
-                break;
-            }
-        }
-    }*/
 
     private Handler phander = new Handler()
     {
@@ -470,6 +351,9 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
             }
         }
     };
+    int scan_card = -1;
+    int SNLen = -1;
+
     @Override
     public void onClick(View v) {
         Intent i = new Intent();
@@ -477,51 +361,134 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
         switch (v.getId())
         {
             case R.id.room_wristband_service_btn:
-                if(!t5.getText().toString().equals("服务项目")||!t5.getText().toString().equals("")) {
-                    sell();
-                }else {
-                    msg = "请选择服务项目";
-                    handler.post(toast);
+                if(clickUtils.isFastClick()){
+                    if(!t5.getText().toString().equals("服务项目")) {
+                        sell();
+                    }else {
+                        msg = "请选择服务项目";
+                        handler.post(toast);
+                    }
                 }
+
                 break;
             case R.id.room_wristband_service_out_btn:
-                back();
+                if(clickUtils.isFastClick()){
+                    back();
+                }
+
                 break;
             case R.id.service_type:
-                i = new Intent(SellServiceActivity.this, ServiceTypeActivity.class);
-                startActivity(i);
-                finish();
-                break;
-            case R.id.service_project:
-                if (t4.getText().toString().equals("服务类型")){
-                    msg = "请选择服务类型";
-                    handler.post(toast);
-                }else {
-                    i = new Intent(SellServiceActivity.this, ServiceProjectActivity.class);
-                    bundle1.putSerializable("type", t4.getText().toString().substring(5,t4.getText().toString().length()));
-                    i.putExtras(bundle1);
+                if(clickUtils.isFastClick()){
+                    timer.cancel();
+                    i = new Intent(wristbandServiceActivity.this, ServiceTypeActivity.class);
                     startActivity(i);
                     finish();
                 }
+
+                break;
+            case R.id.service_project:
+                if(clickUtils.isFastClick()){
+                    if (t4.getText().toString().equals("服务类型")){
+                        msg = "请选择服务类型";
+                        handler.post(toast);
+                    }else {
+                        timer.cancel();
+                        i = new Intent(wristbandServiceActivity.this, ServiceProjectActivity.class);
+                        bundle1.putSerializable("type", t4.getText().toString().substring(5,t4.getText().toString().length()));
+                        i.putExtras(bundle1);
+                        startActivity(i);
+                        finish();
+                    }
+                }
+
                 break;
             case R.id.service_technician:
-                if (t5.getText().toString().equals("服务项目")){
-                    msg = "请选择服务项目";
-                    handler.post(toast);
-                }else {
-                    i = new Intent(SellServiceActivity.this, ServiceTechnicianActivity.class);
+                if(clickUtils.isFastClick()){
+                    if (t5.getText().toString().equals("服务项目")){
+                        msg = "请选择服务项目";
+                        handler.post(toast);
+                    }else {
+                   /* i = new Intent(wristbandServiceActivity.this, ServiceTechnicianActivity.class);
                     bundle1.putSerializable("pro", t5.getText().toString().substring(5,t5.getText().toString().length()));
                     i.putExtras(bundle1);
                     startActivity(i);
-                    finish();
+                    finish();*/
+                        scanMethod();
+                    }
                 }
+
                 break;
         }
     }
+    public class Task extends TimerTask {
+        public void run(){
+            byte CardType[] = new byte[2];
+            byte Atq[] = new byte[14];
+            char SAK = 1;
+            byte sak[] = new byte[1];
+            sak[0] = (byte) SAK;
+            byte SN[] = new byte[10];
+            scan_card = piccReader.request(CardType, Atq);
+            if(scan_card > 0) {
+                SNLen = piccReader.antisel(SN, sak);
+                String c = bytesToHexString(SN, SNLen);
+                String code1 ="";
+                for (int i=0;i<c.length();i+=2)
+                {
+                    String c1 = c;
+                    code1 = c1.substring(i,i+2)+code1;
+                }
+                String c1 = code1.substring(2,code1.length());
+                String x = String.valueOf(Integer.parseInt(c1,16));
+                if (x.length()<8)
+                {
+                    for(int i = x.length();i<8;i++) {
+                        x = "0" + x;
+                    }
+                }
+                tecNum = x;
+               /* msg = c+"/"+x;
+                handler.post(toast);*/
+               /* msg = x;
+                handler.post(toast);*/
 
+                long curClickTime = System.currentTimeMillis();
+                if ((curClickTime - lastClickTime1) >= 2000) {
+                    if (t5.getText().toString().equals("服务项目")){
+                        msg = "请选择服务项目";
+                        handler.post(toast);
+                    }else {
+                        if(tecNum!=null||!tecNum.equals("")) {
+                            handler.post(setSData);
+                        }
+                    }
+                }
+                lastClickTime1 = curClickTime;
+                //handler.post(setSData);
+            }
+        }
+    }
+    public static String bytesToHexString(byte[] src, int len) {
+        StringBuilder stringBuilder = new StringBuilder("");
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        if (len <= 0) {
+            return "";
+        }
+        for (int i = 0; i < len; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
+    }
     private void sell() {
         //{"code":"dodxm","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sWD":"WQT0182","sXM":"推背","sJS":"A001","sTH":"301",}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","dodxm");
         JSONObject data = new JSONObject();
         try {
@@ -529,7 +496,7 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
             data.put("sIP",baseModel.getIp());
             data.put("sWD",roomModel.getModels().get(0).getsWDBH());
              data.put("sXM",t5.getText().toString().substring(5,t5.getText().toString().length()));
-            if(!"技师选择/自动分配".equals(t6.getText().toString())){
+            if(!"技师扫码".equals(t6.getText().toString())){
                 if(tecNum!=null)
                 {
                     data.put("sJS",tecNum);
@@ -569,7 +536,7 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
             {
                 msg = jsonObject.getString("msg");
                 handler.post(toast);
-                Intent i = new Intent(SellServiceActivity.this, RoomActivity.class);
+                Intent i = new Intent(wristbandServiceActivity.this, Room_wristband_Activity.class);
                 Bundle bundle1 = new Bundle();
                 bundle1.putSerializable("rooms",roomModel);
                 i.putExtras(bundle1);
@@ -611,7 +578,8 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
     }
 
     private void back() {
-        Intent i = new Intent(SellServiceActivity.this, InformationActivity.class);
+        timer.cancel();
+        Intent i = new Intent(wristbandServiceActivity.this, Information_wristband_Activity.class);
         Bundle bundle1 = new Bundle();
         bundle1.putSerializable("rooms",roomModel);
         i.putExtras(bundle1);
@@ -628,5 +596,116 @@ public class SellServiceActivity  extends AppCompatActivity implements View.OnCl
             }
         }
         return list;
+    }
+
+    private void scanMethod() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            // 申请权限
+            ActivityCompat.requestPermissions(wristbandServiceActivity.this, new String[]{Manifest.permission.CAMERA}, Constant.REQ_PERM_CAMERA);
+            return;
+        }
+        // 二维码扫码
+        Intent intent = new Intent(wristbandServiceActivity.this, CaptureActivity.class);
+        startActivityForResult(intent, 1);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //扫描结果回调
+        if ( resultCode >0) {
+            Bundle bundle = data.getExtras();
+            tecNum = bundle.getString(Constant.INTENT_EXTRA_KEY_QR_SCAN);
+            handler.post(setSData);
+        }
+    }
+    Runnable setSData = new Runnable() {
+        @Override
+        public void run() {
+            t6.setText("技师工号："+tecNum);
+        }
+    };
+
+
+    private Vibrator mVibrator;
+    private ScanManager mScanManager;
+    private SoundPool soundpool = null;
+    private boolean isScaning = false;
+    private int soundid;
+    private String barcodeStr;
+    private final static String SCAN_ACTION = ScanManager.ACTION_DECODE;
+    private BroadcastReceiver mScanReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // TODO Auto-generated method stub
+            isScaning = false;
+            soundpool.play(soundid, 1, 1, 0, 0, 1);
+            //showScanResult.setText("");
+            mVibrator.vibrate(100);
+
+            byte[] barcode = intent.getByteArrayExtra(ScanManager.DECODE_DATA_TAG);
+            int barcodelen = intent.getIntExtra(ScanManager.BARCODE_LENGTH_TAG, 0);
+            byte temp = intent.getByteExtra(ScanManager.BARCODE_TYPE_TAG, (byte) 0);
+            android.util.Log.i("debug", "----codetype--" + temp);
+            tecNum = new String(barcode, 0, barcodelen);
+            if (t5.getText().toString().equals("服务项目")){
+                msg = "请选择服务项目";
+                handler.post(toast);
+            }else {
+                   /* i = new Intent(wristbandServiceActivity.this, ServiceTechnicianActivity.class);
+                    bundle1.putSerializable("pro", t5.getText().toString().substring(5,t5.getText().toString().length()));
+                    i.putExtras(bundle1);
+                    startActivity(i);
+                    finish();*/
+                handler.post(setSData);
+            }
+            //showScanResult.setText(barcodeStr);
+
+        }
+
+    };
+    private void initScan() {
+        // TODO Auto-generated method stub
+        mScanManager = new ScanManager();
+        mScanManager.openScanner();
+
+        mScanManager.switchOutputMode( 0);
+        soundpool = new SoundPool(1, AudioManager.STREAM_NOTIFICATION, 100); // MODE_RINGTONE
+        soundid = soundpool.load("/etc/Scan_new.ogg", 1);
+    }
+    @Override
+    protected void onDestroy() {
+        // TODO Auto-generated method stub
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        // TODO Auto-generated method stub
+        super.onPause();
+        if(mScanManager != null) {
+            mScanManager.stopDecode();
+            isScaning = false;
+        }
+        unregisterReceiver(mScanReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        // TODO Auto-generated method stub
+        super.onResume();
+        initScan();
+        //showScanResult.setText("");
+        IntentFilter filter = new IntentFilter();
+        int[] idbuf = new int[]{PropertyID.WEDGE_INTENT_ACTION_NAME, PropertyID.WEDGE_INTENT_DATA_STRING_TAG};
+        String[] value_buf = mScanManager.getParameterString(idbuf);
+        if(value_buf != null && value_buf[0] != null && !value_buf[0].equals("")) {
+            filter.addAction(value_buf[0]);
+        } else {
+            filter.addAction(SCAN_ACTION);
+        }
+
+        registerReceiver(mScanReceiver, filter);
     }
 }

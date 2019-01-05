@@ -20,11 +20,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1">
-            <GridView
+            <GridView xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/serviceGridView"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:numColumns="auto_fit"
+                android:numColumns="3"
                 android:columnWidth="90dp"
                 android:layout_marginTop="5dp"
                 android:stretchMode="columnWidth"

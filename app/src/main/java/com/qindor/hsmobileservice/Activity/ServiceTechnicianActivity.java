@@ -75,7 +75,7 @@ public class ServiceTechnicianActivity  extends AppCompatActivity {
         out.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(ServiceTechnicianActivity.this,SellServiceActivity.class);
+                Intent i = new Intent(ServiceTechnicianActivity.this,wristbandServiceActivity.class);
                 startActivity(i);
                 finish();
             }
@@ -120,7 +120,7 @@ public class ServiceTechnicianActivity  extends AppCompatActivity {
                 editor.putString("tec",newTec.get(position).getsXM());
                 editor.putString("tecNum",newTec.get(position).getsGH());
                 editor.commit();
-                Intent i = new Intent(ServiceTechnicianActivity.this,SellServiceActivity.class);
+                Intent i = new Intent(ServiceTechnicianActivity.this,wristbandServiceActivity.class);
                 startActivity(i);
                 finish();
             }
@@ -212,7 +212,7 @@ public class ServiceTechnicianActivity  extends AppCompatActivity {
     }
 
     public void back(){
-        Intent i = new Intent(ServiceTechnicianActivity.this,SellServiceActivity.class);
+        Intent i = new Intent(ServiceTechnicianActivity.this,wristbandServiceActivity.class);
         startActivity(i);
         finish();
     }

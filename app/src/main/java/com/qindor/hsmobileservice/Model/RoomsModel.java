@@ -8,6 +8,7 @@ public class RoomsModel implements Serializable{
 
     private static final long serialVersionUID = -9068187688817415698L;
     private List<RoomModel> models = new ArrayList<>();
+    private InformationModel informationModel = new InformationModel();
     private String code;
 
     public RoomsModel() {
@@ -16,6 +17,24 @@ public class RoomsModel implements Serializable{
     public RoomsModel(List<RoomModel> models, String code) {
         this.models = models;
         this.code = code;
+    }
+
+    public RoomsModel(List<RoomModel> models,InformationModel informationModel, String code) {
+        this.models = models;
+        this.informationModel = informationModel;
+        this.code = code;
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public InformationModel getInformationModel() {
+        return informationModel;
+    }
+
+    public void setInformationModel(InformationModel informationModel) {
+        this.informationModel = informationModel;
     }
 
     public List<RoomModel> getModels() {

@@ -33,7 +33,7 @@ public class ServiceProjectActivity  extends AppCompatActivity {
     private String msg;
     private Handler handler;
     private TextView out;
-    private String type;
+    private String type,mode;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,7 +47,7 @@ public class ServiceProjectActivity  extends AppCompatActivity {
         title.setText("服务项目");
         SharedPreferences sharedPreferences=getSharedPreferences("config",0);
         String temp = sharedPreferences.getString("projectAndPlistModel", "");
-
+        mode = sharedPreferences.getString("mode","");
         ByteArrayInputStream bais =  new ByteArrayInputStream(Base64.decode(temp.getBytes(), Base64.DEFAULT));
         try {
             ObjectInputStream ois = new ObjectInputStream(bais);
@@ -62,8 +62,15 @@ public class ServiceProjectActivity  extends AppCompatActivity {
         out.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(ServiceProjectActivity.this,SellServiceActivity.class);
-                startActivity(i);
+                if(mode.equals("支付模式"))
+                {
+                    startActivity(new Intent(ServiceProjectActivity.this,payServiceActivity.class));
+
+                }else if(mode.equals("腕带模式"))
+                {
+                    startActivity(new Intent(ServiceProjectActivity.this,wristbandServiceActivity.class));
+
+                }
                 finish();
             }
         });
@@ -110,8 +117,15 @@ public class ServiceProjectActivity  extends AppCompatActivity {
                 editor.putString("pro",item.get(position).get("sXMMC").toString());
                 editor.putString("tec","");
                 editor.commit();
-                Intent i = new Intent(ServiceProjectActivity.this,SellServiceActivity.class);
-                startActivity(i);
+                if(mode.equals("支付模式"))
+                {
+                    startActivity(new Intent(ServiceProjectActivity.this,payServiceActivity.class));
+
+                }else if(mode.equals("腕带模式"))
+                {
+                    startActivity(new Intent(ServiceProjectActivity.this,wristbandServiceActivity.class));
+
+                }
                 finish();
             }
         });
@@ -132,8 +146,15 @@ public class ServiceProjectActivity  extends AppCompatActivity {
     }
 
     public void back(){
-        Intent i = new Intent(ServiceProjectActivity.this,SellServiceActivity.class);
-        startActivity(i);
+        if(mode.equals("支付模式"))
+        {
+            startActivity(new Intent(ServiceProjectActivity.this,payServiceActivity.class));
+
+        }else if(mode.equals("腕带模式"))
+        {
+            startActivity(new Intent(ServiceProjectActivity.this,wristbandServiceActivity.class));
+
+        }
         finish();
     }
 }

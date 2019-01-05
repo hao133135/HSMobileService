@@ -6,9 +6,18 @@ android {
         applicationId "com.qindor.hsmobileservice"
         minSdkVersion 18
         targetSdkVersion 27
-        versionCode 20181017
-        versionName "1.0.0.1"
+        versionCode 20190104
+        versionName "1.0.0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        release {
+            storeFile file( "myreleasekey.keystore ")
+            storePassword  "password "
+            keyAlias  "MyReleaseKey "
+            keyPassword  "password "
+            v2SigningEnabled false
+        }
     }
     buildTypes {
         release {
@@ -28,4 +37,6 @@ dependencies {
     implementation 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
+    implementation files('libs/platform_sdk_v2.4.0810.jar')
+    implementation 'com.ansen.http:okhttpencapsulation:1.0.1'
 }

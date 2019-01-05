@@ -38,6 +38,7 @@ import com.qindor.hsmobileservice.R;
 import com.qindor.hsmobileservice.Utils.Configuration;
 import com.qindor.hsmobileservice.Utils.HttpUtils;
 import com.qindor.hsmobileservice.Utils.LoadingDialog;
+import com.qindor.hsmobileservice.Utils.clickUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,7 +65,6 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     private HttpUtils httpUtils;
     private BaseModel baseModel;
     private Configuration configuration;
-    private Map<String, Object> map;
     private String resultData,re,code;
     private RoomsModel roomModel;
     private WristbandAdpater wristbandAdpater;
@@ -77,7 +77,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     private AlertDialog alertDialog;
     private ArrayAdapter<String> adapter;
     private List<String> sslist = new ArrayList<>(),tslist=new ArrayList<>();
-    private String msg,sout,userid,sKey;
+    private String msg,sout,userid,sKey,sGH,sDWID;
     private TextView open,sell,t1,p1,t2,p2,wristband,title,dtitle;
     private List<TechnicianModel> technicianModels;
     private List<RoomModel> roomModels;
@@ -136,7 +136,6 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         configuration = new Configuration();
         projectAndPlistModel= new ProjectAndPlistModel();
         handler = new Handler();
-        map = new HashMap<String, Object>();
         open.setOnClickListener(this);
         sell.setOnClickListener(this);
      /*   LoadingDialog.Builder builder1=new LoadingDialog.Builder(WristbandActivity.this)
@@ -181,20 +180,26 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         switch (v.getId())
         {
             case R.id.room_wristband_open:
-                getServiceData("doklt");
+                if(clickUtils.isFastClick()){
+                    getServiceData("doklt");
+                }
+
                 break;
             case R.id.room_wristband_sell:
+                if(clickUtils.isFastClick()){
+                    Intent i = new Intent(WristbandActivity.this, wristbandServiceActivity.class);
+                    startActivity(i);
+                    finish();
+                }
                 //showServiceDialog();
-                Intent i = new Intent(WristbandActivity.this, SellServiceActivity.class);
-                startActivity(i);
-                finish();
+
                 break;
         }
     }
 
     private void getTData() {
         //{"code":"getjsl","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148"}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","getjsl");
         JSONObject data = new JSONObject();
         try {
@@ -233,7 +238,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     }
     private void getPData() {
         //{"code":"getjxm","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148"}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","getjxm");
         JSONObject data = new JSONObject();
         try {
@@ -272,7 +277,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     }
     private void getData() {
         //{"code":"gettxx","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sTBH":"301"}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code","gettxx");
         JSONObject data = new JSONObject();
         try {
@@ -424,7 +429,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
        @Override
        public void run() {
            //{"code":"dodxm","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sWD":"WQT0182","sXM":"推背","sJS":"A001","sTH":"301",}}
-           map.clear();
+           Map<String, Object> map = new HashMap<>();
            map.put("code","getwdh");
            JSONObject data = new JSONObject();
            try {
@@ -549,7 +554,6 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         sslist.clear();
         sslist.add("上钟");
         sslist.add("加钟");
-        sslist.add("减钟");
         sslist.add("下钟");
         sslist.add("退单");
     }
@@ -564,7 +568,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                 for (int i=0;i<jsonArray.length();i++) {
                     JSONObject jsonObject1 = (JSONObject) jsonArray.get(i);
                     if(jsonObject1.getString("sWDBH").equals(roomModel.getModels().get(0).getsWDBH())) {
-                        RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"), jsonObject1.getString("sWDBH"), jsonObject1.getString("sXMMC"), jsonObject1.getString("fXMDJ"), jsonObject1.getString("fSL"), jsonObject1.getString("fXMJE"), jsonObject1.getString("sJSGH"), jsonObject1.getString("sJSXM"), jsonObject1.getString("sZLX"), jsonObject1.getString("sDateYMDHMSSZ"), jsonObject1.getString("sDateYMDHMSXZ"), jsonObject1.getString("iZSC"), jsonObject1.getString("iSY"),jsonObject1.getString("sZT"));
+                        RoomModel roomModel = new RoomModel(jsonObject1.getString("sDWID"), jsonObject1.getString("sWDBH"), jsonObject1.getString("sXMMC"), jsonObject1.getString("fXMDJ"), jsonObject1.getString("fSL"), jsonObject1.getString("fXMJE"), jsonObject1.getString("sJSGH"), jsonObject1.getString("sJSXM"), jsonObject1.getString("sZLX"), jsonObject1.getString("sDateYMDHMSSZ"), jsonObject1.getString("sDateYMDHMSXZ"), jsonObject1.getString("iZSC"), jsonObject1.getString("iSY"),jsonObject1.getString("sZT"),jsonObject1.getString("iZF"));
                         roomModels.add(roomModel);
                     }
                 }
@@ -596,9 +600,12 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                 {
                     showSetDeBugDialog(roomModels.get(position).getsXMMC());
                     sXMMC = roomModels.get(position);
+                    sDWID = roomModels.get(position).getsDWID();
+                    sGH = roomModels.get(position).getsJSGH();
                 }
             }
         });
+        wristbandAdpater.notifyDataSetChanged();
     }
     private void showSetDeBugDialog(String sXMMC) {
         AlertDialog.Builder setDeBugDialog = new AlertDialog.Builder(this);
@@ -663,7 +670,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                         {
                             builder.create().show();
                         }
-                    }else if(re.equals("加钟")||re.equals("减钟")||re.equals("下钟"))
+                    }else if(re.equals("加钟")||re.equals("下钟"))
                     {
                         if(sXMMC.getsZT().equals("备钟")){
                             msg = "该项目未上钟";
@@ -731,9 +738,6 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                 case "加钟":
                     getServiceData("dojaz");
                     break;
-                case "减钟":
-                    getServiceData("dojdz");
-                    break;
                 case "下钟":
                     getServiceData("dojxz");
                     break;
@@ -746,13 +750,22 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
     };
     private void getServiceData(String service) {
         //{"code":"doklt","msg":{"sMAC":"A8-1E-84-81-70-CD","sIP":"10.1.3.148","sWD":"WQT0182","sTH":"301"}}}
-        map.clear();
+        Map<String, Object> map = new HashMap<>();
         map.put("code",service);
         JSONObject data = new JSONObject();
         try {
+            /*data.put("sMAC",baseModel.getMac());
+            data.put("sIP",baseModel.getIp());
+            data.put("sDWID",sXMMC.getsDWID());*/
             data.put("sMAC",baseModel.getMac());
             data.put("sIP",baseModel.getIp());
-            data.put("sDWID",sXMMC.getsDWID());
+            if (service.equals("dojsz")||service.equals("dojaz")||service.equals("dojxz")) {
+                data.put("sTH",informationModel.getsTBH());
+                data.put("sGH",sGH);
+            }else if(service.equals("dojtd"))
+            {
+                data.put("sDWID",sDWID);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -796,7 +809,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
                 handler.post(toast);
                 if (msg.equals("退单成功"))
                 {
-                    startActivity(configuration.getIntent(WristbandActivity.this,InformationActivity.class));
+                    startActivity(configuration.getIntent(WristbandActivity.this,Information_wristband_Activity.class));
                     finish();
                 }
             }else {
@@ -816,7 +829,7 @@ public class WristbandActivity extends AppCompatActivity implements View.OnClick
         }
     };
     public void back(){
-        startActivity(configuration.getIntent(WristbandActivity.this,InformationActivity.class));
+        startActivity(configuration.getIntent(WristbandActivity.this,Information_wristband_Activity.class));
         finish();
     }
     /**

@@ -1,27 +1,31 @@
 package com.qindor.hsmobileservice.Model;
 
 public class RoomAdpaterModel {
-    private String sWDBH;
+    private String sJSGH;
     private String sXMMC;
     private String sDateYMDHMSSZ;
     private int state;
+    private String sDWID;
+    private String sZT;
 
     public RoomAdpaterModel() {
     }
 
-    public RoomAdpaterModel(String sWDBH, String sXMMC, String sDateYMDHMSSZ, int state) {
-        this.sWDBH = sWDBH;
+    public RoomAdpaterModel(String sJSGH, String sXMMC, String sDateYMDHMSSZ, int state,String sDWID,String sZT) {
+        this.sJSGH = sJSGH;
         this.sXMMC = sXMMC;
         this.sDateYMDHMSSZ = sDateYMDHMSSZ;
         this.state = state;
+        this.sDWID = sDWID;
+        this.sZT = sZT;
     }
 
-    public String getsWDBH() {
-        return sWDBH;
+    public String getsJSGH() {
+        return sJSGH;
     }
 
-    public void setsWDBH(String sWDBH) {
-        this.sWDBH = sWDBH;
+    public void setsJSGH(String sJSGH) {
+        this.sJSGH = sJSGH;
     }
 
     public String getsXMMC() {
@@ -46,5 +50,21 @@ public class RoomAdpaterModel {
 
     public void setState(int state) {
         this.state = state;
+    }
+
+    public String getsDWID() {
+        return sDWID;
+    }
+
+    public void setsDWID(String sDWID) {
+        this.sDWID = sDWID;
+    }
+
+    public String getsZT() {
+        return sZT;
+    }
+
+    public void setsZT(String sZT) {
+        this.sZT = sZT;
     }
 }

@@ -30,7 +30,7 @@ public class ServiceTypeActivity  extends AppCompatActivity {
     private GridView gridview;
     private SimpleAdapter saImageItems = null;
     private ProjectAndPlistModel projectAndPlistModel;
-    private String msg;
+    private String msg,mode;
     private Handler handler;
     private TextView out;
     @Override
@@ -45,6 +45,7 @@ public class ServiceTypeActivity  extends AppCompatActivity {
         projectAndPlistModel = new ProjectAndPlistModel();
         SharedPreferences sharedPreferences=getSharedPreferences("config",0);
         String temp = sharedPreferences.getString("projectAndPlistModel", "");
+        mode = sharedPreferences.getString("mode","");
         ByteArrayInputStream bais =  new ByteArrayInputStream(Base64.decode(temp.getBytes(), Base64.DEFAULT));
         try {
             ObjectInputStream ois = new ObjectInputStream(bais);
@@ -53,12 +54,17 @@ public class ServiceTypeActivity  extends AppCompatActivity {
             msg=e.toString();
             handler.post(toast);
         }
+
         loadView(projectAndPlistModel.getProjectModels());
         out.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(ServiceTypeActivity.this,SellServiceActivity.class);
-                startActivity(i);
+                if(mode.equals("支付模式")) {
+                    startActivity(new Intent(ServiceTypeActivity.this, payServiceActivity.class));
+                }else if(mode.equals("腕带模式")){
+                    startActivity(new Intent(ServiceTypeActivity.this, wristbandServiceActivity.class));
+
+                }
                 finish();
             }
         });
@@ -71,7 +77,7 @@ public class ServiceTypeActivity  extends AppCompatActivity {
     };
 
     public void loadView(final List<ProjectModel> projectModels){
-        List<String> list = new ArrayList<>();
+        final List<String> list = new ArrayList<>();
         for (ProjectModel p:projectModels){
             list.add(p.getsXMLX());
         }
@@ -103,11 +109,15 @@ public class ServiceTypeActivity  extends AppCompatActivity {
                 SharedPreferences.Editor editor=sp.edit();
         /*        String s = projectModels.get(position).getsXMLX().substring(5,projectModels.get(position).getsXMLX().length());
                 String s1 = s.substring(0,s.length()-1);*/
-                editor.putString("type",projectModels.get(position).getsXMLX());
+                editor.putString("type",list.get(position));
                 editor.putString("pro","");
                 editor.commit();
-                Intent i = new Intent(ServiceTypeActivity.this,SellServiceActivity.class);
-                startActivity(i);
+                if(mode.equals("支付模式")) {
+                    startActivity(new Intent(ServiceTypeActivity.this, payServiceActivity.class));
+                }else if(mode.equals("腕带模式")){
+                    startActivity(new Intent(ServiceTypeActivity.this, wristbandServiceActivity.class));
+
+                }
                 finish();
             }
         });
@@ -138,8 +148,12 @@ public class ServiceTypeActivity  extends AppCompatActivity {
     }
 
     public void back(){
-        Intent i = new Intent(ServiceTypeActivity.this,SellServiceActivity.class);
-        startActivity(i);
+        if(mode.equals("支付模式")) {
+            startActivity(new Intent(ServiceTypeActivity.this, payServiceActivity.class));
+        }else if(mode.equals("腕带模式")){
+            startActivity(new Intent(ServiceTypeActivity.this, wristbandServiceActivity.class));
+
+        }
         finish();
     }
 }

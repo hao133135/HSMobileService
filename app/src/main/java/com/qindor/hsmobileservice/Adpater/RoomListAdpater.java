@@ -62,9 +62,10 @@ public class RoomListAdpater<T> extends BaseAdapter {
             inflator = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflator.inflate(resource, null);
             viewHolder = new ViewHolder();
-            viewHolder.sWDBH = convertView.findViewById(R.id.information_list_sWDBH);
+            viewHolder.sJSGH = convertView.findViewById(R.id.information_list_sWDBH);
             viewHolder.sXMMC = convertView.findViewById(R.id.information_list_sXMMC);
             viewHolder.sJSXM = convertView.findViewById(R.id.information_list_sJSXM);
+            viewHolder.sZT = convertView.findViewById(R.id.information_list_sZT);
             viewHolder.sDateYMDHMSSZ = convertView.findViewById(R.id.information_list_sDateYMDHMSSZ);
             viewHolder.sDateYMDHMSXZ = convertView.findViewById(R.id.information_list_sDateYMDHMSXZ);
             //为了减少开销，则只在第一页时调用findViewById
@@ -74,11 +75,12 @@ public class RoomListAdpater<T> extends BaseAdapter {
         }
         RoomAdpaterModel roomModel  = roomModels.get(position);
         if (roomModel.getState()==1) {
-            viewHolder.sWDBH.setText(roomModel.getsWDBH());
-            viewHolder.sWDBH.setTextColor(Color.RED);
+            viewHolder.sJSGH.setText(roomModel.getsJSGH());
+            viewHolder.sJSGH.setTextColor(Color.RED);
         }else {
-            viewHolder.sWDBH.setText(roomModel.getsWDBH());
+            viewHolder.sJSGH.setText(roomModel.getsJSGH());
         }
+        viewHolder.sZT.setText(roomModel.getsZT());
         viewHolder.sXMMC.setText(roomModel.getsXMMC());
         int i = roomModel.getsDateYMDHMSSZ().indexOf(" ");
         if(!roomModel.getsDateYMDHMSSZ().equals("")) {
@@ -94,7 +96,7 @@ public class RoomListAdpater<T> extends BaseAdapter {
         this.selectedItem = selectedItem;
     }
     class ViewHolder{
-        private TextView sWDBH,sXMMC,sJSXM,sDateYMDHMSSZ,sDateYMDHMSXZ;
+        private TextView sJSGH,sXMMC,sJSXM,sDateYMDHMSSZ,sDateYMDHMSXZ,sZT;
     }
     /**
      * 局部刷新

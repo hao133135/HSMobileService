@@ -19,10 +19,11 @@ public class RoomModel implements Serializable {
     private String iZSC;//钟时长（分钟）;
     private String iSY;//钟剩余时间（分钟）;
     private String sZT;//状态
+    private String iZF;//支付状态
     public RoomModel() {
     }
 
-    public RoomModel( String sDWID, String sWDBH, String sXMMC, String fXMDJ, String fSL, String fXMJE, String sJSGH, String sJSXM, String sZLX, String sDateYMDHMSSZ, String sDateYMDHMSXZ, String iZSC, String iSY, String sZT) {
+    public RoomModel( String sDWID, String sWDBH, String sXMMC, String fXMDJ, String fSL, String fXMJE, String sJSGH, String sJSXM, String sZLX, String sDateYMDHMSSZ, String sDateYMDHMSXZ, String iZSC, String iSY, String sZT,String iZF) {
         this.sDWID = sDWID;
         this.sWDBH = sWDBH;
         this.sXMMC = sXMMC;
@@ -37,6 +38,7 @@ public class RoomModel implements Serializable {
         this.iZSC = iZSC;
         this.iSY = iSY;
         this.sZT = sZT;
+        this.iZF = iZF;
     }
 
     public String getsTBH() {
@@ -157,5 +159,13 @@ public class RoomModel implements Serializable {
 
     public void setsZT(String sZT) {
         this.sZT = sZT;
+    }
+
+    public String getiZF() {
+        return iZF;
+    }
+
+    public void setiZF(String iZF) {
+        this.iZF = iZF;
     }
 }
